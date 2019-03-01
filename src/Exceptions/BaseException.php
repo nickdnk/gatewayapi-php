@@ -15,11 +15,11 @@ class BaseException extends \Exception
 
     private $gatewayAPIErrorCode, $response;
 
-    public function __construct(string $message, ?string $gatewayAPIErrorCode, ?ResponseInterface $response)
+    public function __construct(?string $message, ?string $gatewayAPIErrorCode, ?ResponseInterface $response)
     {
 
         // Don't use getCode, as it will always be 1. GatewayAPI returns 0xXXXX codes as strings.
-        parent::__construct($message, 1);
+        parent::__construct($message ?? 'No error message defined.', 1);
         $this->gatewayAPIErrorCode = $gatewayAPIErrorCode;
         $this->response = $response;
     }

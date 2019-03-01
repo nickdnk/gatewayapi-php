@@ -20,12 +20,13 @@ class MessageException extends BaseException
      * use of tags or duplicate recipients. This error is also thrown for filtered or blocked messages. Inspect the
      * error code or response body to find out the exact problem.
      *
-     * @param string            $code
+     * @param string|null       $message
+     * @param string|null       $code
      * @param ResponseInterface $response
      */
-    public function __construct(string $code, ResponseInterface $response)
+    public function __construct(?string $message, ?string $code, ResponseInterface $response)
     {
 
-        parent::__construct('Request contains one or more invalid messages.', $code, $response);
+        parent::__construct($message, $code, $response);
     }
 }

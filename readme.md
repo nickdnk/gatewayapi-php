@@ -123,8 +123,11 @@ try {
      * an integer.
      */
 
-    // The error code.
+    // The error code (may be null)
     $e->getGatewayAPIErrorCode();
+    
+    // Error message, if present
+    $e->getMessage();
 
     // Full response.
     $e->getResponse()->getBody();
@@ -137,8 +140,14 @@ try {
      * customer support.
      */
 
-    // The error code.
+    // The error code (may be null)
     $e->getGatewayAPIErrorCode();
+    
+    // Error message, if present
+    $e->getMessage();
+        
+    // Full response.
+    $e->getResponse()->getBody();
 
 } catch (nickdnk\GatewayAPI\Exceptions\BaseException $e) {
 
@@ -151,6 +160,9 @@ try {
 
     // The error code (may be null).
     $e->getGatewayAPIErrorCode();
+    
+    // Error message, if present
+    $e->getMessage();
 
     // HTTP response (may also be null on connection errors).
     $response = $e->getResponse();

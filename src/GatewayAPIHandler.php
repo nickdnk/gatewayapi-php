@@ -155,23 +155,33 @@ class GatewayAPIHandler
 
                         }
 
-                        if ($response->getStatusCode() === 401) {
+                    }
 
-                            throw new UnauthorizedException($code, $response);
+                    if ($response->getStatusCode() === 401) {
 
-                        }
-
-                        if ($response->getStatusCode() === 422) {
-
-                            throw new MessageException($code, $response);
-
-                        }
-
-                        throw new BaseException(
-                            isset($json['message']) ? $json['message'] : 'Unknown GatewayAPI error.', $code, $response
+                        throw new UnauthorizedException(
+                            isset($json['message']) ? $json['message'] : null,
+                            isset($json['code']) ? $json['code'] : null,
+                            $response
                         );
 
                     }
+
+                    if ($response->getStatusCode() === 422) {
+
+                        throw new MessageException(
+                            isset($json['message']) ? $json['message'] : null,
+                            isset($json['code']) ? $json['code'] : null,
+                            $response
+                        );
+
+                    }
+
+                    throw new BaseException(
+                        isset($json['message']) ? $json['message'] : null,
+                        isset($json['code']) ? $json['code'] : null,
+                        $response
+                    );
 
                 }
 
@@ -218,17 +228,21 @@ class GatewayAPIHandler
 
                 } else {
 
-                    if (isset($json['code'])) {
+                    if ($response->getStatusCode() === 401) {
 
-                        if ($response->getStatusCode() === 401) {
-
-                            throw new UnauthorizedException($json['code'], $response);
-
-                        }
-
-                        throw new BaseException('Failed to fetch account status.', $json['code'], $response);
+                        throw new UnauthorizedException(
+                            isset($json['message']) ? $json['message'] : null,
+                            isset($json['code']) ? $json['code'] : null,
+                            $response
+                        );
 
                     }
+
+                    throw new BaseException(
+                        isset($json['message']) ? $json['message'] : null,
+                        isset($json['code']) ? $json['code'] : null,
+                        $response
+                    );
 
                 }
 

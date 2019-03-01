@@ -20,12 +20,13 @@ class UnauthorizedException extends BaseException
      * The error code or response body will tell you more about the particular error, but usually this is because
      * of a bad key/secret combination.
      *
-     * @param string            $code
+     * @param string|null       $message
+     * @param string|null       $code
      * @param ResponseInterface $response
      */
-    public function __construct(string $code, ResponseInterface $response)
+    public function __construct(?string $message, ?string $code, ResponseInterface $response)
     {
 
-        parent::__construct('Request to GatewayAPI was unauthorized.', $code, $response);
+        parent::__construct($message, $code, $response);
     }
 }
