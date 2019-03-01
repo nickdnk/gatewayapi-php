@@ -1,0 +1,24 @@
+{
+  "name": "nickdnk/gatewayapi-php",
+  "description": "PHP library based on Guzzle for integration with gatewayapi.com",
+  "type": "library",
+  "require": {
+    "php": "^7.1",
+    "ext-json": "*",
+    "guzzlehttp/guzzle": "^6.0",
+    "guzzlehttp/oauth-subscriber": "0.3.*"
+  },
+  "license": "GPL-3.0-or-later",
+  "authors": [
+    {
+      "name": "Nicolai Cornelis",
+      "email": "nickdnk@hotmail.com"
+    }
+  ],
+  "minimum-stability": "dev",
+  "autoload": {
+    "psr-4": {
+      "nickdnk\\GatewayAPI\\": "src/"
+    }
+  }
+}
