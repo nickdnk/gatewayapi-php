@@ -107,10 +107,10 @@ class GatewayAPIHandler
 
                 } else {
 
-                    if (isset($json['code'])) {
+                    $message = isset($json['message']) ? $json['message'] : null;
+                    $code = isset($json['code']) ? $json['code'] : null;
 
-                        /** @var string $code */
-                        $code = $json['code'];
+                    if ($code) {
 
                         if ($code === '0x0216') {
 
@@ -126,30 +126,31 @@ class GatewayAPIHandler
                              * to GatewayAPI after the intended send time. We recover from this by removing this
                              * parameter and calling this method recursively.
                              */
-                            foreach ($SMSMessages as &$message) {
+                            foreach ($SMSMessages as &$aMessage) {
 
                                 /**
                                  * In cases where the jobs are parsed to JSON (such as if processed via a queue),
                                  * the input to this method may be raw stdClass objects, and in that case we use
                                  * unset() instead of removeSendTime().
                                  */
-                                if ($message instanceof SMSMessage) {
+                                if ($aMessage instanceof SMSMessage) {
 
-                                    $message->removeSendTime();
+                                    $aMessage->removeSendTime();
 
                                 } else {
-                                    if ($message instanceof \stdClass) {
+                                    if ($aMessage instanceof \stdClass) {
 
-                                        unset($message->sendtime);
+                                        unset($aMessage->sendtime);
 
                                     } else {
 
                                         // If a JSON-parsed job was passed into this method using associative arrays
-                                        unset($message['sendtime']);
+                                        unset($aMessage['sendtime']);
 
                                     }
                                 }
                             }
+                            unset($aMessage);
 
                             return $this->deliverMessages($SMSMessages);
 
@@ -160,9 +161,7 @@ class GatewayAPIHandler
                     if ($response->getStatusCode() === 401) {
 
                         throw new UnauthorizedException(
-                            isset($json['message']) ? $json['message'] : null,
-                            isset($json['code']) ? $json['code'] : null,
-                            $response
+                            $message, $code, $response
                         );
 
                     }
@@ -170,17 +169,13 @@ class GatewayAPIHandler
                     if ($response->getStatusCode() === 422) {
 
                         throw new MessageException(
-                            isset($json['message']) ? $json['message'] : null,
-                            isset($json['code']) ? $json['code'] : null,
-                            $response
+                            $message, $code, $response
                         );
 
                     }
 
                     throw new BaseException(
-                        isset($json['message']) ? $json['message'] : null,
-                        isset($json['code']) ? $json['code'] : null,
-                        $response
+                        $message, $code, $response
                     );
 
                 }
@@ -228,20 +223,19 @@ class GatewayAPIHandler
 
                 } else {
 
+                    $message = isset($json['message']) ? $json['message'] : null;
+                    $code = isset($json['code']) ? $json['code'] : null;
+
                     if ($response->getStatusCode() === 401) {
 
                         throw new UnauthorizedException(
-                            isset($json['message']) ? $json['message'] : null,
-                            isset($json['code']) ? $json['code'] : null,
-                            $response
+                            $message, $code, $response
                         );
 
                     }
 
                     throw new BaseException(
-                        isset($json['message']) ? $json['message'] : null,
-                        isset($json['code']) ? $json['code'] : null,
-                        $response
+                        $message, $code, $response
                     );
 
                 }
@@ -303,12 +297,13 @@ class GatewayAPIHandler
 
                 } else {
 
-                    if (isset($json['message'])) {
+                    $message = isset($json['message']) ? $json['message'] : null;
+                    $code = isset($json['code']) ? $json['code'] : null;
 
-                        throw new BaseException(
-                            "Unhandled GatewayAPI error: " . $json['message'], null, $response
-                        );
-                    }
+                    throw new BaseException(
+                        $message, $code, $response
+                    );
+
                 }
             }
 

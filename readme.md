@@ -20,7 +20,6 @@ As we use return types and type hints, this library requires PHP 7.1.
 ### How to use
 
 ```php
-
 use nickdnk\GatewayAPI\GatewayAPIHandler;
 use nickdnk\GatewayAPI\Recipient;
 use nickdnk\GatewayAPI\SMSMessage;
@@ -29,7 +28,7 @@ $handler = new GatewayAPIHandler('my_key', 'my_secret');
 
 $message1 = new SMSMessage(
     
-    //The message you want to send. Include any placeholder tag strings.
+    // The message you want to send. Include any placeholder tag strings.
     'Hello, %FIRSTNAME%! Your code is: %CODE%.',
     
     // The name of the sender as seen by the recipient.
