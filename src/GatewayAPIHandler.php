@@ -144,9 +144,18 @@ class GatewayAPIHandler
 
                                     } else {
 
-                                        // If a JSON-parsed job was passed into this method using associative arrays
-                                        unset($aMessage['sendtime']);
+                                        if (isset($aMessage['sendtime'])) {
 
+                                            // If a JSON-parsed job was passed into this method using associative arrays
+                                            unset($aMessage['sendtime']);
+
+                                        } else {
+
+                                            // Don't keep looping if we cannot recover.
+                                            throw new BaseException(
+                                                'Failed to handle invalid \'sendtime\' parameter.', $code, $response
+                                            );
+                                        }
                                     }
                                 }
                             }
@@ -177,17 +186,15 @@ class GatewayAPIHandler
                     throw new BaseException(
                         $message, $code, $response
                     );
-
                 }
-
             }
 
-            throw new BaseException("Failed to parse response from GatewayAPI.", null, $response);
+            throw new BaseException('Failed to parse response from GatewayAPI.', null, $response);
 
         } catch (TransferException $exception) {
 
             throw new BaseException(
-                "Failed to connect to GatewayAPI to send SMS: " . $exception->getMessage(), null, null
+                'Failed to connect to GatewayAPI to send SMS: ' . $exception->getMessage(), null, null
             );
 
         }
@@ -239,7 +246,6 @@ class GatewayAPIHandler
                     );
 
                 }
-
             }
 
             throw new BaseException(
@@ -308,13 +314,13 @@ class GatewayAPIHandler
             }
 
             throw new BaseException(
-                "Failed to parse response from GatewayAPI.", null, $response
+                'Failed to parse response from GatewayAPI.', null, $response
             );
 
         } catch (TransferException $exception) {
 
             throw new BaseException(
-                "Failed to connect to GatewayAPI to fetch prices: " . $exception->getMessage(), null, null
+                'Failed to connect to GatewayAPI to fetch prices: ' . $exception->getMessage(), null, null
             );
 
         }
