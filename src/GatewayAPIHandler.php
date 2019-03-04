@@ -277,7 +277,7 @@ class GatewayAPIHandler
         try {
 
             $response = (new Client())->get(
-                '/api/prices/list/sms/json',
+                'https://gatewayapi.com/api/prices/list/sms/json',
                 [
                     'connect_timeout' => 15,
                     'timeout'         => 30,
