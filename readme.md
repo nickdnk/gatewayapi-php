@@ -125,7 +125,7 @@ try {
     // The error code (may be null)
     $e->getGatewayAPIErrorCode();
     
-    // Error message, if present
+    // Error message, if present.
     $e->getMessage();
 
     // Full response.
@@ -142,11 +142,23 @@ try {
     // The error code (may be null)
     $e->getGatewayAPIErrorCode();
     
-    // Error message, if present
+    // Error message, if present.
     $e->getMessage();
         
     // Full response.
     $e->getResponse()->getBody();
+
+} catch (nickdnk\GatewayAPI\Exceptions\ConnectionException $e) {
+
+    /**
+     * Connection to GatewayAPI failed or timed out. Try again or
+     * check their server status at https://status.gatewayapi.com/
+     */
+    
+    // Error message, if present.
+    $e->getMessage();
+    
+    // The error message and response object will always be null.
 
 } catch (nickdnk\GatewayAPI\Exceptions\BaseException $e) {
 
@@ -160,7 +172,66 @@ try {
     // The error code (may be null).
     $e->getGatewayAPIErrorCode();
     
-    // Error message, if present
+    // Error message, if present.
+    $e->getMessage();
+
+    // HTTP response (may also be null on connection errors).
+    $response = $e->getResponse();
+    
+    if ($response !== null) {
+        $response->getBody();
+        $response->getStatusCode();
+    }
+
+}
+
+// You cancel an SMS batch as well, using the IDs returned.
+
+try {
+    
+    $handler->cancelScheduledMessages($result->getMessageIds());
+    
+} catch (nickdnk\GatewayAPI\Exceptions\AlreadyCanceledOrSentException $e) {
+
+    /**
+     * If you attempt to cancel an SMS that has already been sent or 
+     * canceled.
+     */
+
+    // The error code (may be null)
+    $e->getGatewayAPIErrorCode();
+    
+    // Error message, if present.
+    $e->getMessage();
+        
+    // Full response.
+    $e->getResponse()->getBody();
+
+} catch (nickdnk\GatewayAPI\Exceptions\ConnectionException $e) {
+
+    /**
+     * Connection to GatewayAPI failed or timed out. Try again or
+     * check their server status at https://status.gatewayapi.com/
+     */
+    
+    // Error message, if present.
+    $e->getMessage();
+    
+    // The error message and response object will always be null.
+
+} catch (nickdnk\GatewayAPI\Exceptions\BaseException $e) {
+
+    /**
+     * Something else is wrong.
+     * All exceptions inherit from this one, so you can catch this error
+     * to handle all errors the same way or implement your own error
+     * handler based on the error code. Remember to check for nulls.
+     */
+
+    // The error code (may be null).
+    $e->getGatewayAPIErrorCode();
+    
+    // Error message, if present.
     $e->getMessage();
 
     // HTTP response (may also be null on connection errors).

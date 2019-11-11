@@ -3,6 +3,7 @@
 
 namespace nickdnk\GatewayAPI\Exceptions;
 
+use Exception;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -10,7 +11,7 @@ use Psr\Http\Message\ResponseInterface;
  *
  * @package nickdnk\GatewayAPI\Exceptions
  */
-class BaseException extends \Exception
+class BaseException extends Exception
 {
 
     private $gatewayAPIErrorCode, $response;
