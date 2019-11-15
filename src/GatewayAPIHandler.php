@@ -303,7 +303,7 @@ class GatewayAPIHandler
         } catch (RequestException $exception) {
 
             throw new BaseException(
-                'Failed to fetch GatewayAPI prices: ' . $exception->getMessage(), null, null
+                'Failed to fetch GatewayAPI prices: ' . $exception->getMessage(), null, $exception->getResponse()
             );
 
         } catch (TransferException $exception) {
