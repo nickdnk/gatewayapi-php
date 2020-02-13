@@ -3,7 +3,11 @@
 
 namespace nickdnk\GatewayAPI;
 
-use nickdnk\GatewayAPI\Exceptions\BaseException;
+use InvalidArgumentException;
+use Lcobucci\JWT\Claim;
+use Lcobucci\JWT\Parser;
+use Lcobucci\JWT\Signer\Hmac\Sha256;
+use nickdnk\GatewayAPI\Exceptions\WebhookException;
 use Psr\Http\Message\RequestInterface;
 
 class DeliveryStatusWebhook
@@ -40,36 +44,60 @@ class DeliveryStatusWebhook
     /**
      * @param RequestInterface $request
      *
+     * @param string           $secret
+     *
      * @return static
-     * @throws BaseException
+     * @throws WebhookException
      */
-    public static function constructFromRequest(RequestInterface $request): self
+    public static function constructFromRequest(RequestInterface $request, string $secret): self
     {
 
-        $data = json_decode($request->getBody(), true);
+        $token = $request->getHeaderLine('X-Gwapi-Signature');
 
-        if (!$data) {
-            throw new BaseException('Failed to serialize webhook to JSON.', null, null);
+        if (!$token) {
+            throw new WebhookException('Missing webhook JWT header.');
         }
 
-        $missingKeys = array_diff_key(['id', 'msisdn', 'time', 'status'], $data);
+        try {
 
-        if ($missingKeys) {
-            throw new BaseException('Webhook missing key(s): ' . implode(',', $missingKeys), null, null);
+            $jwt = (new Parser())->parse($token);
+
+            if (!$jwt->verify(new Sha256(), $secret)) {
+                throw new WebhookException('Webhook failed signature validation.');
+            }
+
+            /** @var Claim[] $data */
+            $data = $jwt->getClaims();
+
+            if (!array_key_exists('id', $data)
+                || !array_key_exists('msisdn', $data)
+                || !array_key_exists('time', $data)
+                || !array_key_exists('status', $data)) {
+
+                throw new WebhookException(
+                    'Webhook missing required keys. Got: ' . implode(',', array_keys($data))
+                );
+
+            }
+
+            return new self(
+                $data['id']->getValue(),
+                $data['msisdn']->getValue(),
+                $data['time']->getValue(),
+                $data['status']->getValue(),
+                array_key_exists('userref', $data) ? $data['userref']->getValue() : null,
+                array_key_exists('charge_status', $data) ? $data['charge_status']->getValue() : null,
+                array_key_exists('country_code', $data) ? $data['country_code']->getValue() : null,
+                array_key_exists('country_prefix', $data) ? $data['country_prefix']->getValue() : null,
+                array_key_exists('error', $data) ? $data['error']->getValue() : null,
+                array_key_exists('code', $data) ? $data['code']->getValue() : null
+            );
+
+        } catch (InvalidArgumentException $e) {
+
+            throw new WebhookException('Failed to parse webhook header as JWT.');
+
         }
-
-        return new self(
-            $data['id'],
-            $data['msisdn'],
-            $data['time'],
-            $data['status'],
-            array_key_exists('userref', $data) ? $data['userref'] : null,
-            array_key_exists('charge_status', $data) ? $data['charge_status'] : null,
-            array_key_exists('country_code', $data) ? $data['country_code'] : null,
-            array_key_exists('country_prefix', $data) ? $data['country_prefix'] : null,
-            array_key_exists('error', $data) ? $data['error'] : null,
-            array_key_exists('code', $data) ? $data['code'] : null
-        );
 
     }
 
