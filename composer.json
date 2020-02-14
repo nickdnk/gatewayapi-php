@@ -6,14 +6,13 @@
     "php": "^7.1",
     "ext-json": "*",
     "guzzlehttp/guzzle": "^6.0",
-    "guzzlehttp/oauth-subscriber": "0.3.*",
-    "lcobucci/jwt": "^3.0"
+    "guzzlehttp/oauth-subscriber": "0.3.*"
   },
   "require-dev": {
     "php": "^7.3",
     "phpunit/phpunit": "^9.0"
   },
-  "license": "GPL-3.0-or-later",
+  "license": "MIT",
   "authors": [
     {
       "name": "Nicolai Cornelis",

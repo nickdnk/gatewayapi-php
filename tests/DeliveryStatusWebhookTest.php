@@ -16,13 +16,11 @@ class DeliveryStatusWebhookTest extends TestCase
     public function testConstructFromRequest()
     {
 
-        $secret = 'secret';
-
         $request = new Request(
             'POST', 'https://localhost', ['X-Gwapi-Signature' => self::VALID_JWT]
         );
 
-        $webhook = DeliveryStatusWebhook::constructFromRequest($request, $secret);
+        $webhook = DeliveryStatusWebhook::constructFromRequest($request, 'secret');
 
         $this->assertEquals(2381703, $webhook->getMessageId());
         $this->assertEquals(4542609045, $webhook->getPhoneNumber());
@@ -110,11 +108,8 @@ class DeliveryStatusWebhookTest extends TestCase
     /**
      * @throws nickdnk\GatewayAPI\Exceptions\WebhookException
      */
-    public function testInvalidAlgorithmHS512()
+    public function testHS512()
     {
-
-        $this->expectException(nickdnk\GatewayAPI\Exceptions\WebhookException::class);
-        $this->expectExceptionMessage('failed signature');
 
         $request = new Request(
             'POST', 'https://localhost', [
@@ -122,7 +117,9 @@ class DeliveryStatusWebhookTest extends TestCase
                   ]
         );
 
-        DeliveryStatusWebhook::constructFromRequest($request, 'secret');
+        $webhook = DeliveryStatusWebhook::constructFromRequest($request, 'secret');
+
+        $this->assertEquals(2381703, $webhook->getMessageId());
 
     }
 }
