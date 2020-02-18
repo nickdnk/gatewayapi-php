@@ -1,12 +1,12 @@
 # GatewayAPI PHP Library
 
 This library will allow you to integrate the **GatewayAPI.com** API in your project using modern PHP7 and an OOP structure.
-For full description of their API, error codes and so on, see: https://gatewayapi.com/docs.
+For full description of their API, error codes and so on, see: <https://gatewayapi.com/docs>.
 
 ### Prerequisites
 
-You need an active account at https://www.gatewayapi.com to use this library.
-Once you have that, you need to generate an API key/secret pair under **API** -> **API Keys**.
+You need an active account at <https://www.gatewayapi.com> to use this library.
+Once you have that you need to generate an API key/secret pair under **API** -> **API Keys**.
 
 
 ### Installation
@@ -20,9 +20,13 @@ As we use return types and type hints, this library requires PHP 7.1.
 ### How to use
 
 ```php
+use nickdnk\GatewayAPI\DeliveryStatusWebhook;
 use nickdnk\GatewayAPI\GatewayAPIHandler;
+use nickdnk\GatewayAPI\IncomingMessageWebhook;
 use nickdnk\GatewayAPI\Recipient;
 use nickdnk\GatewayAPI\SMSMessage;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 $handler = new GatewayAPIHandler('my_key', 'my_secret');
 
@@ -55,7 +59,7 @@ $message1 = new SMSMessage(
     
     // The message class to use. Note that prices vary. The secret class
     // requires approval by GatewayAPI on your account before you can use
-    // it. Otherwise you will get an error.
+    // it, otherwise you will get an error.
     SMSMessage::CLASS_STANDARD
 
 );
@@ -83,8 +87,11 @@ try {
             $message2
         ]
     );
+    
+    // All message IDs returned.
+    $messageIds = $result->getMessageIds();
 
-    // The total cost of this request.
+    // The total cost of this request (all message IDs combined).
     $totalCost = $result->getTotalCost();
 
     // Currency you were charged in.
@@ -155,10 +162,10 @@ try {
      * check their server status at https://status.gatewayapi.com/
      */
     
-    // Error message, if present.
+    // Error message.
     $e->getMessage();
     
-    // The error message and response object will always be null.
+    // The error code and response object will always be null.
 
 } catch (nickdnk\GatewayAPI\Exceptions\BaseException $e) {
 
@@ -214,10 +221,10 @@ try {
      * check their server status at https://status.gatewayapi.com/
      */
     
-    // Error message, if present.
+    // Error message.
     $e->getMessage();
     
-    // The error message and response object will always be null.
+    // The error code and response object will always be null.
 
 } catch (nickdnk\GatewayAPI\Exceptions\BaseException $e) {
 
@@ -242,6 +249,40 @@ try {
         $response->getStatusCode();
     }
 
+}
+
+
+/**
+ * The webhook parser is based on PSR-7 allowing you to pass a $request
+ * object directly into the class and get a webhook back. Note that you
+ * must define two different webhooks - one for status notifications and
+ * one for incoming traffic - as you must specify which type of webhook
+ * you're expecting to parse.
+ */
+function (RequestInterface $request, ResponseInterface $response) {
+    
+    try {
+        
+    // For status notifications:
+    $webhook = DeliveryStatusWebhook::constructFromRequest($request, 'my_jwt_secret');
+    $webhook->getPhoneNumber();
+    $webhook->getStatus();
+    // etc
+    
+    // For incoming (MO) traffic:
+    $webhook = IncomingMessageWebhook::constructFromRequest($request, 'my_jwt_secret');
+    $webhook->getPhoneNumber();
+    $webhook->getWebhookLabel();
+    // etc
+    
+    } catch (\nickdnk\GatewayAPI\Exceptions\WebhookException $exception) {
+        
+        // Something is wrong with the webhook or it was not correctly
+        // signed. Take a look at your configuration.
+        $exception->getMessage();
+        
+    }
+    
 }
 ```
 
