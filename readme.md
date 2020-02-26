@@ -263,17 +263,17 @@ function (RequestInterface $request, ResponseInterface $response) {
     
     try {
         
-    // For status notifications:
-    $webhook = DeliveryStatusWebhook::constructFromRequest($request, 'my_jwt_secret');
-    $webhook->getPhoneNumber();
-    $webhook->getStatus();
-    // etc
-    
-    // For incoming (MO) traffic:
-    $webhook = IncomingMessageWebhook::constructFromRequest($request, 'my_jwt_secret');
-    $webhook->getPhoneNumber();
-    $webhook->getWebhookLabel();
-    // etc
+        // For status notifications:
+        $webhook = DeliveryStatusWebhook::constructFromRequest($request, 'my_jwt_secret');
+        $webhook->getPhoneNumber();
+        $webhook->getStatus();
+        // etc
+        
+        // For incoming (MO) traffic:
+        $webhook = IncomingMessageWebhook::constructFromRequest($request, 'my_jwt_secret');
+        $webhook->getPhoneNumber();
+        $webhook->getWebhookLabel();
+        // etc
     
     } catch (\nickdnk\GatewayAPI\Exceptions\WebhookException $exception) {
         

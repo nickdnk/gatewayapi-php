@@ -500,7 +500,7 @@ class GatewayAPIHandler
         } catch (TransferException $exception) {
 
             throw new ConnectionException(
-                'Failed to connect to GatewayAPI to send SMS: ' . $exception->getMessage()
+                'Failed to connect to GatewayAPI: ' . $exception->getMessage()
             );
 
         }
