@@ -84,8 +84,8 @@ class Result
 
     /**
      *
-     * Returns an array of with the IDs of all messages delivered to GatewayAPI in the same order they were added
-     * to the request.
+     * Returns an array of the IDs of all messages delivered to GatewayAPI in the same order they were added
+     * to the request. These IDs can be passed directly into the cancelScheduledMessages()-method to cancel messages.
      *
      * @return int[]
      */

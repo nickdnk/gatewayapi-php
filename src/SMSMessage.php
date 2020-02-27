@@ -15,7 +15,7 @@ namespace nickdnk\GatewayAPI;
  * @property string      $userref
  * @package nickdnk\GatewayAPI
  */
-class SMSMessage implements \JsonSerializable
+class SMSMessage implements \JsonSerializable, Constructable
 {
 
     const CLASS_STANDARD = 'standard';
@@ -24,9 +24,67 @@ class SMSMessage implements \JsonSerializable
 
     private $message, $sender, $recipients, $tags, $sendtime, $class, $userref;
 
-    public function __construct(
-        string $message, string $senderName, array $recipients = [], ?string $userReference = null, array $tags = [], ?int $sendTime = null, string $class = self::CLASS_STANDARD
-    ) {
+    /**
+     * @param array|\stdClass $array
+     *
+     * @return SMSMessage
+     */
+    public static function constructFromArray($array): Constructable
+    {
+
+        if ($array instanceof \stdClass) {
+            $array = (array)$array;
+        } elseif (!is_array($array)) {
+            throw new \InvalidArgumentException('constructFromArray takes array or stdClass.');
+        }
+
+        if (array_key_exists('class', $array)
+            && array_key_exists('message', $array)
+            && array_key_exists('sender', $array)
+            && array_key_exists('recipients', $array)
+            && array_key_exists('tags', $array)) {
+
+            $recipients = [];
+
+            foreach ($array['recipients'] as $recipient) {
+
+                $recipients[] = Recipient::constructFromArray($recipient);
+
+            }
+
+            return new self(
+                $array['message'],
+                $array['sender'],
+                $recipients,
+                array_key_exists('userref', $array) ? $array['userref'] : null,
+                $array['tags'],
+                array_key_exists('sendtime', $array) ? $array['sendtime'] : null,
+                $array['class']
+            );
+
+        } else {
+
+            throw new \InvalidArgumentException('Array passed to SMSMessage is missing required parameters.');
+
+        }
+
+    }
+
+    /**
+     * SMSMessage constructor.
+     *
+     * @param string      $message
+     * @param string      $senderName
+     * @param Recipient[] $recipients
+     * @param string|null $userReference
+     * @param string[]    $tags
+     * @param int|null    $sendTime
+     * @param string      $class
+     */
+    public function __construct(string $message, string $senderName, array $recipients = [],
+        ?string $userReference = null, array $tags = [], ?int $sendTime = null, string $class = self::CLASS_STANDARD
+    )
+    {
 
         $this->message = $message;
         $this->sender = $senderName;
@@ -34,7 +92,7 @@ class SMSMessage implements \JsonSerializable
         $this->userref = $userReference;
         $this->tags = $tags;
         $this->sendtime = $sendTime;
-        $this->class = $class;
+        $this->setClass($class);
 
     }
 
@@ -49,13 +107,79 @@ class SMSMessage implements \JsonSerializable
 
 
     /**
-     * @param string $class
+     * Must be one of the available constants; standard, premium or secret.
+     *
+     * @param  $class
      */
     public function setClass(string $class): void
     {
 
+        if ($class !== self::CLASS_STANDARD
+            && $class !== self::CLASS_PREMIUM
+            && $class !== self::CLASS_SECRET) {
+            throw new \InvalidArgumentException(
+                'SMS class must be one of the provided constants. Received value: ' . $class
+            );
+        }
+
         $this->class = $class;
+
     }
+
+    /**
+     * @return string
+     */
+    public function getClass(): string
+    {
+
+        return $this->class;
+    }
+
+    /**
+     * @return string
+     */
+    public function getMessage(): string
+    {
+
+        return $this->message;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSender(): string
+    {
+
+        return $this->sender;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getTags(): array
+    {
+
+        return $this->tags;
+    }
+
+    /**
+     * @return int
+     */
+    public function getSendtime(): int
+    {
+
+        return $this->sendtime;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUserref(): string
+    {
+
+        return $this->userref;
+    }
+
 
     /**
      * @param int $sendTime
@@ -83,6 +207,8 @@ class SMSMessage implements \JsonSerializable
     }
 
     /**
+     * Returns all the recipients that have been added to the SMS message.
+     *
      * @return Recipient[]
      */
     public function getRecipients(): array

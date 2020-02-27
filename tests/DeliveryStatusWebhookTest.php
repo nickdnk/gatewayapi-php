@@ -1,8 +1,9 @@
 <?php
 
 
+namespace nickdnk\GatewayAPI;
+
 use GuzzleHttp\Psr7\Request;
-use nickdnk\GatewayAPI\DeliveryStatusWebhook;
 use PHPUnit\Framework\TestCase;
 
 class DeliveryStatusWebhookTest extends TestCase
@@ -11,7 +12,7 @@ class DeliveryStatusWebhookTest extends TestCase
     private const VALID_JWT = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MjM4MTcwMywibXNpc2RuIjo0NTQyNjA5MDQ1LCJ0aW1lIjoxNTIyNzY0MDYyLCJzdGF0dXMiOiJERUxJVkVSRUQiLCJlcnJvciI6ImVycm9yIHRleHQiLCJjb2RlIjoiZXJyb3IgY29kZSIsImNvdW50cnlfcHJlZml4Ijo0NSwiY291bnRyeV9jb2RlIjoiREsiLCJjaGFyZ2Vfc3RhdHVzIjoiQVVUSE9SSVpFRCIsInVzZXJyZWYiOiJhIHJlZmVyZW5jZSJ9.LgbbsxAj61SQhDA0A3dGlcT8OZN2UJsTgBiifNHEeh8';
 
     /**
-     * @throws nickdnk\GatewayAPI\Exceptions\WebhookException
+     * @throws Exceptions\WebhookException
      */
     public function testConstructFromRequest()
     {
@@ -36,12 +37,12 @@ class DeliveryStatusWebhookTest extends TestCase
     }
 
     /**
-     * @throws nickdnk\GatewayAPI\Exceptions\WebhookException
+     * @throws Exceptions\WebhookException
      */
     public function testMissingJWTHeader()
     {
 
-        $this->expectException(nickdnk\GatewayAPI\Exceptions\WebhookException::class);
+        $this->expectException(Exceptions\WebhookException::class);
         $this->expectExceptionMessage('Missing webhook JWT header');
 
         $request = new Request(
@@ -53,12 +54,12 @@ class DeliveryStatusWebhookTest extends TestCase
     }
 
     /**
-     * @throws nickdnk\GatewayAPI\Exceptions\WebhookException
+     * @throws Exceptions\WebhookException
      */
     public function testMissingRequiredKeys()
     {
 
-        $this->expectException(nickdnk\GatewayAPI\Exceptions\WebhookException::class);
+        $this->expectException(Exceptions\WebhookException::class);
         $this->expectExceptionMessage('Webhook missing required keys');
 
         $request = new Request(
@@ -72,12 +73,12 @@ class DeliveryStatusWebhookTest extends TestCase
     }
 
     /**
-     * @throws nickdnk\GatewayAPI\Exceptions\WebhookException
+     * @throws Exceptions\WebhookException
      */
     public function testInvalidJWT()
     {
 
-        $this->expectException(nickdnk\GatewayAPI\Exceptions\WebhookException::class);
+        $this->expectException(Exceptions\WebhookException::class);
         $this->expectExceptionMessage('Failed to parse');
 
         $request = new Request(
@@ -89,12 +90,12 @@ class DeliveryStatusWebhookTest extends TestCase
     }
 
     /**
-     * @throws nickdnk\GatewayAPI\Exceptions\WebhookException
+     * @throws Exceptions\WebhookException
      */
     public function testInvalidSignature()
     {
 
-        $this->expectException(nickdnk\GatewayAPI\Exceptions\WebhookException::class);
+        $this->expectException(Exceptions\WebhookException::class);
         $this->expectExceptionMessage('failed signature');
 
         $request = new Request(
@@ -106,7 +107,7 @@ class DeliveryStatusWebhookTest extends TestCase
     }
 
     /**
-     * @throws nickdnk\GatewayAPI\Exceptions\WebhookException
+     * @throws Exceptions\WebhookException
      */
     public function testHS512()
     {

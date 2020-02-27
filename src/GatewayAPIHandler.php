@@ -68,7 +68,7 @@ class GatewayAPIHandler
     }
 
     /**
-     * Cancels all the messages with the ID in the request. If multiple errors occur only the first response will be
+     * Cancels all the messages with the provided IDs. If multiple errors occur only the first response will be
      * thrown as an exception. The rest will either fail or succeed silently.
      *
      * @param array $messageIds
