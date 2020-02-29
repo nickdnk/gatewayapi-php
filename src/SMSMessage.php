@@ -15,7 +15,7 @@ namespace nickdnk\GatewayAPI;
  * @property string      $userref
  * @package nickdnk\GatewayAPI
  */
-class SMSMessage implements \JsonSerializable, Constructable
+class SMSMessage implements Constructable
 {
 
     const CLASS_STANDARD = 'standard';
@@ -25,17 +25,17 @@ class SMSMessage implements \JsonSerializable, Constructable
     private $message, $sender, $recipients, $tags, $sendtime, $class, $userref;
 
     /**
-     * @param array|\stdClass $array
+     * @param string $json
      *
      * @return SMSMessage
      */
-    public static function constructFromArray($array): Constructable
+    public static function constructFromJSON(string $json): Constructable
     {
 
-        if ($array instanceof \stdClass) {
-            $array = (array)$array;
-        } elseif (!is_array($array)) {
-            throw new \InvalidArgumentException('constructFromArray takes array or stdClass.');
+        $array = json_decode($json, true);
+
+        if (!$array) {
+            throw new \InvalidArgumentException('Invalid JSON passed to SMSMessage.');
         }
 
         if (array_key_exists('class', $array)
@@ -48,7 +48,7 @@ class SMSMessage implements \JsonSerializable, Constructable
 
             foreach ($array['recipients'] as $recipient) {
 
-                $recipients[] = Recipient::constructFromArray($recipient);
+                $recipients[] = new Recipient($recipient['msisdn'], $recipient['tagvalues']);
 
             }
 
@@ -64,7 +64,7 @@ class SMSMessage implements \JsonSerializable, Constructable
 
         } else {
 
-            throw new \InvalidArgumentException('Array passed to SMSMessage is missing required parameters.');
+            throw new \InvalidArgumentException('JSON passed to SMSMessage is missing required parameters.');
 
         }
 

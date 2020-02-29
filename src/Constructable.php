@@ -3,14 +3,14 @@
 
 namespace nickdnk\GatewayAPI;
 
-interface Constructable
+interface Constructable extends \JsonSerializable
 {
 
     /**
-     * @param array|\stdClass $array
+     * @param string $json
      *
-     * @return static
+     * @return Constructable
      */
-    public static function constructFromArray($array): self;
+    public static function constructFromJSON(string $json): Constructable;
 
 }

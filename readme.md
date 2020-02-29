@@ -25,7 +25,7 @@ use nickdnk\GatewayAPI\GatewayAPIHandler;
 use nickdnk\GatewayAPI\IncomingMessageWebhook;
 use nickdnk\GatewayAPI\Recipient;
 use nickdnk\GatewayAPI\SMSMessage;
-use Psr\Http\Message\RequestInterface;
+use nickdnk\GatewayAPI\Webhook;use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 $handler = new GatewayAPIHandler('my_key', 'my_secret');
@@ -254,26 +254,26 @@ try {
 
 /**
  * The webhook parser is based on PSR-7 allowing you to pass a $request
- * object directly into the class and get a webhook back. Note that you
- * must define two different webhooks - one for status notifications and
- * one for incoming traffic - as you must specify which type of webhook
- * you're expecting to parse.
+ * object directly into the class and get a webhook back.
  */
 function (RequestInterface $request, ResponseInterface $response) {
     
     try {
+
+        $webhook = Webhook::constructFromRequest($request, 'my_jwt_secret');
         
-        // For status notifications:
-        $webhook = DeliveryStatusWebhook::constructFromRequest($request, 'my_jwt_secret');
-        $webhook->getPhoneNumber();
-        $webhook->getStatus();
-        // etc
-        
-        // For incoming (MO) traffic:
-        $webhook = IncomingMessageWebhook::constructFromRequest($request, 'my_jwt_secret');
-        $webhook->getPhoneNumber();
-        $webhook->getWebhookLabel();
-        // etc
+        // Determine the type of webhook if you don't already know
+        if ($webhook instanceof DeliveryStatusWebhook) {
+            
+            $webhook->getPhoneNumber();
+            $webhook->getStatus();
+            
+        } elseif ($webhook instanceof IncomingMessageWebhook) {
+            
+            $webhook->getPhoneNumber();
+            $webhook->getWebhookLabel();
+            
+        }
     
     } catch (\nickdnk\GatewayAPI\Exceptions\WebhookException $exception) {
         
@@ -284,8 +284,50 @@ function (RequestInterface $request, ResponseInterface $response) {
     }
     
 }
-```
 
+/**
+ * Or if you don't have a PSR-7 request handy, you can pass the JWT
+ * directly into these methods instead. Note that the JWT contains
+ * the entire payload (which is duplicated unsigned in the body).
+ */
+
+// JWT as a string, read from where-ever:
+$jwt = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
+
+try {
+    
+    $webhook = Webhook::constructFromJWT($jwt, 'my_jwt_secret');
+    
+} catch (\nickdnk\GatewayAPI\Exceptions\WebhookException $exception) {
+    
+    $exception->getMessage();
+    
+}
+
+
+/**
+ * If you put your SMSMessages or Recipients into a queue (or anywhere 
+ * else) as JSON, you can parse them back into objects like this. This
+ * is similar to the behavior of the serializable interface but reads
+ * plain JSON and has proper return types.
+ */
+$recipient = new Recipient(4587652222, ['Martha', '42442']);
+
+$json = json_encode($recipient);
+
+$recipient = Recipient::constructFromJSON($json);
+
+$message = new SMSMessage('Hello %NAME%! Your code is: %CODE%', 'MyService');
+$message->setSendTime(time() + 3600);
+$message->setUserReference('reference');
+$message->addRecipient($recipient);
+
+$json = json_encode($message);
+
+$smsMessage = SMSMessage::constructFromJSON($json);
+$smsMessage->getMessage();
+$smsMessage->getRecipients();
+```
 ### Contact
 
 nickdnk (at) hotmail.com

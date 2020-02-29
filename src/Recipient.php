@@ -10,24 +10,24 @@ namespace nickdnk\GatewayAPI;
  * @property string[] $tagvalues
  * @package nickdnk\GatewayAPI
  */
-class Recipient implements \JsonSerializable, Constructable
+class Recipient implements Constructable
 {
 
     private $msisdn, $tagvalues, $countryCode;
 
 
     /**
-     * @param array|\stdClass $array
+     * @param string $json
      *
      * @return Recipient
      */
-    public static function constructFromArray($array): Constructable
+    public static function constructFromJSON(string $json): Constructable
     {
 
-        if ($array instanceof \stdClass) {
-            $array = (array)$array;
-        } elseif (!is_array($array)) {
-            throw new \InvalidArgumentException('constructFromArray takes array or stdClass.');
+        $array = json_decode($json, true);
+
+        if (!$array) {
+            throw new \InvalidArgumentException('Invalid JSON passed to Recipient.');
         }
 
         if (array_key_exists('msisdn', $array)
@@ -39,7 +39,7 @@ class Recipient implements \JsonSerializable, Constructable
 
         } else {
 
-            throw new \InvalidArgumentException('Array passed to Recipient is missing required parameters.');
+            throw new \InvalidArgumentException('JSON passed to Recipient is missing required parameters.');
 
         }
 

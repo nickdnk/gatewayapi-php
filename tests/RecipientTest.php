@@ -8,14 +8,13 @@ use PHPUnit\Framework\TestCase;
 class RecipientTest extends TestCase
 {
 
-    public function testConstructFromArray()
+    public function testConstructFromJSON()
     {
 
-        $self = Recipient::constructFromArray(
-            [
-                'msisdn'    => 4561274239,
-                'tagvalues' => ['Joe', '12']
-            ]
+        $self = Recipient::constructFromJSON(
+            json_encode(
+                new Recipient(4561274239, ['Joe', '12'])
+            )
         );
 
         $this->assertEquals(4561274239, $self->getMsisdn());
@@ -28,11 +27,13 @@ class RecipientTest extends TestCase
 
         $this->expectException(\InvalidArgumentException::class);
 
-        Recipient::constructFromArray(
-            [
-                'msisdnn'   => 4561274239, // invalid key
-                'tagvalues' => ['Joe', '12']
-            ]
+        Recipient::constructFromJSON(
+            json_encode(
+                [
+                    'msisdnn'   => 4561274239, // invalid key
+                    'tagvalues' => ['Joe', '12']
+                ]
+            )
         );
 
     }

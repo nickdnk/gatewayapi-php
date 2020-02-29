@@ -3,10 +3,7 @@
 
 namespace nickdnk\GatewayAPI;
 
-use nickdnk\GatewayAPI\Exceptions\WebhookException;
-use Psr\Http\Message\RequestInterface;
-
-class DeliveryStatusWebhook
+class DeliveryStatusWebhook extends Webhook
 {
 
     /**
@@ -35,55 +32,14 @@ class DeliveryStatusWebhook
     const CHARGE_STATUS_REFUNDED    = 'REFUNDED';
     const CHARGE_STATUS_REFUND_FAIL = 'REFUND_FAIL';
 
-    private $messageId, $phoneNumber, $timestamp, $status, $userReference, $chargeStatus, $countryCode, $countryPrefix, $errorDescription, $errorCode;
+    private $timestamp, $status, $userReference, $chargeStatus, $countryCode, $countryPrefix, $errorDescription, $errorCode;
 
-    /**
-     * @param RequestInterface $request
-     *
-     * @param string           $secret
-     *
-     * @return static
-     * @throws WebhookException
-     */
-    public static function constructFromRequest(RequestInterface $request, string $secret): self
-    {
-
-        $data = GatewayAPIHandler::parseAndValidateJWTFromRequest($request, $secret);
-
-        if (!array_key_exists('id', $data)
-            || !array_key_exists('msisdn', $data)
-            || !array_key_exists('time', $data)
-            || !array_key_exists('status', $data)) {
-
-            throw new WebhookException(
-                'Webhook missing required keys. Got: ' . implode(',', array_keys($data))
-            );
-
-        }
-
-        return new self(
-            $data['id'],
-            $data['msisdn'],
-            $data['time'],
-            $data['status'],
-            array_key_exists('userref', $data) ? $data['userref'] : null,
-            array_key_exists('charge_status', $data) ? $data['charge_status'] : null,
-            array_key_exists('country_code', $data) ? $data['country_code'] : null,
-            array_key_exists('country_prefix', $data) ? $data['country_prefix'] : null,
-            array_key_exists('error', $data) ? $data['error'] : null,
-            array_key_exists('code', $data) ? $data['code'] : null
-        );
-
-    }
-
-    public function __construct(int $messageId, int $phoneNumber, int $timestamp, string $status,
-        ?string $userReference, ?string $chargeStatus, ?string $countryCode, ?int $countryPrefix,
-        ?string $errorDescription, ?string $errorCode
+    public function __construct(int $messageId, int $phoneNumber, int $timestamp, string $status, ?string $userReference,
+        ?string $chargeStatus, ?string $countryCode, ?int $countryPrefix, ?string $errorDescription, ?string $errorCode
     )
     {
 
-        $this->messageId = $messageId;
-        $this->phoneNumber = $phoneNumber;
+        parent::__construct($messageId, $phoneNumber);
         $this->timestamp = $timestamp;
         $this->status = $status;
         $this->userReference = $userReference;
@@ -92,24 +48,6 @@ class DeliveryStatusWebhook
         $this->countryPrefix = $countryPrefix;
         $this->errorDescription = $errorDescription;
         $this->errorCode = $errorCode;
-    }
-
-    /**
-     * @return int
-     */
-    public function getMessageId(): int
-    {
-
-        return $this->messageId;
-    }
-
-    /**
-     * @return int
-     */
-    public function getPhoneNumber(): int
-    {
-
-        return $this->phoneNumber;
     }
 
     /**

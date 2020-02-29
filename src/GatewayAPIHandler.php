@@ -19,8 +19,6 @@ use nickdnk\GatewayAPI\Exceptions\InsufficientFundsException;
 use nickdnk\GatewayAPI\Exceptions\MessageException;
 use nickdnk\GatewayAPI\Exceptions\PastSendTimeException;
 use nickdnk\GatewayAPI\Exceptions\UnauthorizedException;
-use nickdnk\GatewayAPI\Exceptions\WebhookException;
-use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use stdClass;
 
@@ -315,77 +313,6 @@ class GatewayAPIHandler
             );
 
         }
-
-    }
-
-    /**
-     * @param RequestInterface $request
-     * @param string           $secret
-     *
-     * @return array
-     * @throws WebhookException
-     */
-    public static function parseAndValidateJWTFromRequest(RequestInterface $request, string $secret): array
-    {
-
-        $token = $request->getHeaderLine('X-Gwapi-Signature');
-
-        if (!$token) {
-            throw new WebhookException('Missing webhook JWT header.');
-        }
-
-        $split = explode('.', $token);
-
-        if (count($split) === 3) {
-
-            $header = json_decode(base64_decode($split[0]));
-            $payload = json_decode(base64_decode($split[1]), true);
-
-            if ($header && $payload) {
-
-                if (property_exists($header, 'alg')) {
-
-                    switch ($header->alg) {
-
-                        case 'HS256':
-                            $algo = 'sha256';
-                            break;
-                        case 'HS384';
-                            $algo = 'sha384';
-                            break;
-                        case 'HS512';
-                            $algo = 'sha512';
-                            break;
-                        default:
-                            $algo = null;
-
-                    }
-
-                    if ($algo
-                        && rtrim(
-                               strtr(
-                                   base64_encode(hash_hmac($algo, $split[0] . '.' . $split[1], $secret, true)),
-                                   "+/",
-                                   "-_"
-                               ),
-                               "="
-                           ) === $split[2]) {
-
-                        return $payload;
-
-                    } else {
-
-                        throw new WebhookException('Webhook failed signature validation.');
-
-                    }
-
-                }
-
-            }
-
-        }
-
-        throw new WebhookException('Failed to parse webhook header as JWT.');
 
     }
 
