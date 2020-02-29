@@ -20,12 +20,14 @@ As we use return types and type hints, this library requires PHP 7.1.
 ### How to use
 
 ```php
-use nickdnk\GatewayAPI\CancelResult;use nickdnk\GatewayAPI\DeliveryStatusWebhook;
+use nickdnk\GatewayAPI\CancelResult;
+use nickdnk\GatewayAPI\DeliveryStatusWebhook;
 use nickdnk\GatewayAPI\GatewayAPIHandler;
 use nickdnk\GatewayAPI\IncomingMessageWebhook;
 use nickdnk\GatewayAPI\Recipient;
 use nickdnk\GatewayAPI\SMSMessage;
-use nickdnk\GatewayAPI\Webhook;use Psr\Http\Message\RequestInterface;
+use nickdnk\GatewayAPI\Webhook;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 $handler = new GatewayAPIHandler('my_key', 'my_secret');
