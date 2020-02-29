@@ -19,14 +19,12 @@ As we use return types and type hints, this library requires PHP 7.1.
 
 ### How to use
 
+#### Sending SMS
+
 ```php
-use nickdnk\GatewayAPI\CancelResult;use nickdnk\GatewayAPI\DeliveryStatusWebhook;
 use nickdnk\GatewayAPI\GatewayAPIHandler;
-use nickdnk\GatewayAPI\IncomingMessageWebhook;
 use nickdnk\GatewayAPI\Recipient;
 use nickdnk\GatewayAPI\SMSMessage;
-use nickdnk\GatewayAPI\Webhook;use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
 
 $handler = new GatewayAPIHandler('my_key', 'my_secret');
 
@@ -191,21 +189,29 @@ try {
     }
 
 }
+```
+#### Canceling scheduled messages
+You can cancel a scheduled SMS based on the ID returned when sending.
+As this method creates a pool of requests (1 per message ID) it does
+not throw exceptions but returns an array of `CancelResult`. Each of
+these contain the status and (if failed) exception of the request.
+```php
+use nickdnk\GatewayAPI\CancelResult;
+use nickdnk\GatewayAPI\GatewayAPIHandler;
 
-/**
- * You can cancel a scheduled SMS based on the ID returned when sending.
- * As this method creates a pool of requests (1 per message ID) it does
- * not throw exceptions but returns an array of CancelResults. Each of
- * them contain the status and (if failed) exception of the request.
- */
-$results = $handler->cancelScheduledMessages($result->getMessageIds());
+$handler = new GatewayAPIHandler('my_key', 'my_secret');
+$results = $handler->cancelScheduledMessages([1757284, 1757288]);
 
 foreach ($results as $cancelResult) {
     
-    // The ID of the canceled message is always available
-    $cancelResult->getMessageId(); 
+    // The ID of the canceled message is always available.
+    $cancelResult->getMessageId();
+    
+    if ($cancelResult->getStatus() === CancelResult::STATUS_SUCCEEDED) {
         
-    if ($cancelResult->getStatus() === CancelResult::STATUS_FAILED) {
+        // Success. Obviously.
+        
+    } elseif ($cancelResult->getStatus() === CancelResult::STATUS_FAILED) {
 
         // Get the exception of a failed request.
         $cancelResult->getException();
@@ -213,7 +219,22 @@ foreach ($results as $cancelResult) {
     }
 
 }
+```
+#### Parsing Webhooks
+You can easily parse webhooks sent from GatewayAPI to your server
+using the `Webhook` class. This uses the JWT header to ensure that
+the webhook has not been tampered with and is in fact coming from
+a trusted source.
 
+Two types of webhooks can be defined; delivery status notifications and
+incoming messages using keywords. Both are parsed by `Webhook` and returned
+as their corresponding class.
+```php
+use nickdnk\GatewayAPI\DeliveryStatusWebhook;
+use nickdnk\GatewayAPI\IncomingMessageWebhook;
+use nickdnk\GatewayAPI\Webhook;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * The webhook parser is based on PSR-7 allowing you to pass a $request
@@ -225,7 +246,7 @@ function (RequestInterface $request, ResponseInterface $response) {
 
         $webhook = Webhook::constructFromRequest($request, 'my_jwt_secret');
         
-        // Determine the type of webhook if you don't already know
+        // Determine the type of webhook if you don't already know.
         if ($webhook instanceof DeliveryStatusWebhook) {
             
             $webhook->getPhoneNumber();
@@ -250,9 +271,9 @@ function (RequestInterface $request, ResponseInterface $response) {
 
 /**
  * Or if you don't have a PSR-7 request handy, you can pass the JWT
- * directly into these methods instead. Note that the JWT contains
- * the entire payload which is duplicated unsigned in the body. The
- * request body is entirely ignored.
+ * directly into this method instead. Note that the JWT contains
+ * the entire payload, which is duplicated unsigned in the body of the
+ * request and is ignored entirely by this library.
  */
 
 // JWT as a string, read from where-ever:
@@ -267,14 +288,16 @@ try {
     $exception->getMessage();
     
 }
+```
+#### Handling SMSMessages or Recipients as JSON
+`SMSMessage` and `Recipient` are encoded into the the actual JSON sent
+to the API. If you put this output into a queue, or anything similar,
+and want them back as PHP objects later, you can use these methods to
+do so.
+```php
+use nickdnk\GatewayAPI\Recipient;
+use nickdnk\GatewayAPI\SMSMessage;
 
-
-/**
- * If you put your SMSMessages or Recipients into a queue (or anywhere 
- * else) as JSON, you can parse them back into objects like this. This
- * is similar to the behavior of the serializable interface but reads
- * plain JSON and has proper return types.
- */
 $recipient = new Recipient(4587652222, ['Martha', '42442']);
 
 $json = json_encode($recipient);
