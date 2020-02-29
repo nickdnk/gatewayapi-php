@@ -21,7 +21,9 @@ class DeliveryStatusWebhookTest extends TestCase
             'POST', 'https://localhost', ['X-Gwapi-Signature' => self::VALID_JWT]
         );
 
-        $webhook = DeliveryStatusWebhook::constructFromRequest($request, 'secret');
+        $webhook = Webhook::constructFromRequest($request, 'secret');
+
+        $this->assertTrue($webhook instanceof DeliveryStatusWebhook);
 
         $this->assertEquals(2381703, $webhook->getMessageId());
         $this->assertEquals(4542609045, $webhook->getPhoneNumber());
@@ -49,7 +51,7 @@ class DeliveryStatusWebhookTest extends TestCase
             'POST', 'https://localhost'
         );
 
-        DeliveryStatusWebhook::constructFromRequest($request, 'whatever');
+        Webhook::constructFromRequest($request, 'whatever');
 
     }
 
@@ -68,7 +70,7 @@ class DeliveryStatusWebhookTest extends TestCase
                   ]
         );
 
-        DeliveryStatusWebhook::constructFromRequest($request, 'secret');
+        Webhook::constructFromRequest($request, 'secret');
 
     }
 
@@ -85,7 +87,7 @@ class DeliveryStatusWebhookTest extends TestCase
             'POST', 'https://localhost', ['X-Gwapi-Signature' => 'not_valid']
         );
 
-        DeliveryStatusWebhook::constructFromRequest($request, 'whatever');
+        Webhook::constructFromRequest($request, 'whatever');
 
     }
 
@@ -102,7 +104,7 @@ class DeliveryStatusWebhookTest extends TestCase
             'POST', 'https://localhost', ['X-Gwapi-Signature' => self::VALID_JWT]
         );
 
-        DeliveryStatusWebhook::constructFromRequest($request, 'wrong');
+        Webhook::constructFromRequest($request, 'wrong');
 
     }
 
@@ -118,7 +120,7 @@ class DeliveryStatusWebhookTest extends TestCase
                   ]
         );
 
-        $webhook = DeliveryStatusWebhook::constructFromRequest($request, 'secret');
+        $webhook = Webhook::constructFromRequest($request, 'secret');
 
         $this->assertEquals(2381703, $webhook->getMessageId());
 

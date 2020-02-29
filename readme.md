@@ -20,7 +20,7 @@ As we use return types and type hints, this library requires PHP 7.1.
 ### How to use
 
 ```php
-use nickdnk\GatewayAPI\DeliveryStatusWebhook;
+use nickdnk\GatewayAPI\CancelResult;use nickdnk\GatewayAPI\DeliveryStatusWebhook;
 use nickdnk\GatewayAPI\GatewayAPIHandler;
 use nickdnk\GatewayAPI\IncomingMessageWebhook;
 use nickdnk\GatewayAPI\Recipient;
@@ -192,61 +192,24 @@ try {
 
 }
 
-// You cancel an SMS batch as well, using the IDs returned.
+/**
+ * You can cancel a scheduled SMS based on the ID returned when sending.
+ * As this method creates a pool of requests (1 per message ID) it does
+ * not throw exceptions but returns an array of CancelResults. Each of
+ * them contain the status and (if failed) exception of the request.
+ */
+$results = $handler->cancelScheduledMessages($result->getMessageIds());
 
-try {
+foreach ($results as $cancelResult) {
     
-    $handler->cancelScheduledMessages($result->getMessageIds());
-    
-} catch (nickdnk\GatewayAPI\Exceptions\AlreadyCanceledOrSentException $e) {
-
-    /**
-     * If you attempt to cancel an SMS that has already been sent or 
-     * canceled.
-     */
-
-    // The error code (may be null)
-    $e->getGatewayAPIErrorCode();
-    
-    // Error message, if present.
-    $e->getMessage();
+    // The ID of the canceled message is always available
+    $cancelResult->getMessageId(); 
         
-    // Full response.
-    $e->getResponse()->getBody();
+    if ($cancelResult->getStatus() === CancelResult::STATUS_FAILED) {
 
-} catch (nickdnk\GatewayAPI\Exceptions\ConnectionException $e) {
-
-    /**
-     * Connection to GatewayAPI failed or timed out. Try again or
-     * check their server status at https://status.gatewayapi.com/
-     */
-    
-    // Error message.
-    $e->getMessage();
-    
-    // The error code and response object will always be null.
-
-} catch (nickdnk\GatewayAPI\Exceptions\BaseException $e) {
-
-    /**
-     * Something else is wrong.
-     * All exceptions inherit from this one, so you can catch this error
-     * to handle all errors the same way or implement your own error
-     * handler based on the error code. Remember to check for nulls.
-     */
-
-    // The error code (may be null).
-    $e->getGatewayAPIErrorCode();
-    
-    // Error message, if present.
-    $e->getMessage();
-
-    // HTTP response (may also be null on connection errors).
-    $response = $e->getResponse();
-    
-    if ($response !== null) {
-        $response->getBody();
-        $response->getStatusCode();
+        // Get the exception of a failed request.
+        $cancelResult->getException();
+        
     }
 
 }
@@ -288,7 +251,8 @@ function (RequestInterface $request, ResponseInterface $response) {
 /**
  * Or if you don't have a PSR-7 request handy, you can pass the JWT
  * directly into these methods instead. Note that the JWT contains
- * the entire payload (which is duplicated unsigned in the body).
+ * the entire payload which is duplicated unsigned in the body. The
+ * request body is entirely ignored.
  */
 
 // JWT as a string, read from where-ever:
@@ -328,8 +292,19 @@ $smsMessage = SMSMessage::constructFromJSON($json);
 $smsMessage->getMessage();
 $smsMessage->getRecipients();
 ```
+
+### Tests
+
+If you want to run the unit tests that don't require credentials, simply
+run `vendor/bin/phpunit tests` from the root of the project.
+
+If you want to test the parts that interacts with the API you must
+provide credentials in `GatewayAPIHandlerTest.php`, uncomment the line
+that skips the test and run the above command again. Note that this
+sends out live SMS and will cost you 1 SMS in credits per execution.
+
 ### Contact
 
-nickdnk (at) hotmail.com
+You can reach me at nickdnk@hotmail.com.
 
 Use this library at your own risk. PRs are welcome :)

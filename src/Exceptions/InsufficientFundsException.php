@@ -14,7 +14,7 @@ class InsufficientFundsException extends BaseException
 {
 
     /**
-     * This error is thrown if your account doesn't have enough credits to
+     * This exception is thrown if your account doesn't have enough credits to
      * send the messages passed to deliverMessages().
      *
      * @param string            $code

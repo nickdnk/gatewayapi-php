@@ -14,15 +14,14 @@ class AlreadyCanceledOrSentException extends BaseException
 {
 
     /**
-     * This error is thrown if your account doesn't have enough credits to
-     * send the messages passed to deliverMessages().
+     * This exception is thrown if the message IDs provided to cancelScheduledMessages refer to a message that
+     * does not exist, is not scheduled (was sent) or has already been canceled.
      *
-     * @param int               $id
      * @param ResponseInterface $response
      */
-    public function __construct(int $id, ResponseInterface $response)
+    public function __construct(ResponseInterface $response)
     {
 
-        parent::__construct('Message with ID ' . $id . ' has already been canceled or sent.', null, $response);
+        parent::__construct('Message has already been canceled or sent.', null, $response);
     }
 }

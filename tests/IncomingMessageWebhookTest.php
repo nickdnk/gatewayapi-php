@@ -21,7 +21,9 @@ class IncomingMessageWebhookTest extends TestCase
             'POST', 'https://localhost', ['X-Gwapi-Signature' => self::VALID_JWT]
         );
 
-        $webhook = IncomingMessageWebhook::constructFromRequest($request, 'secret');
+        $webhook = Webhook::constructFromRequest($request, 'secret');
+
+        $this->assertTrue($webhook instanceof IncomingMessageWebhook);
 
         $this->assertEquals(1000001, $webhook->getMessageId());
         $this->assertEquals(4587654321, $webhook->getPhoneNumber());

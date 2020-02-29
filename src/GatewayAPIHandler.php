@@ -4,7 +4,6 @@
 namespace nickdnk\GatewayAPI;
 
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\TransferException;
 use GuzzleHttp\HandlerStack;
@@ -66,75 +65,69 @@ class GatewayAPIHandler
     }
 
     /**
-     * Cancels all the messages with the provided IDs. If multiple errors occur only the first response will be
-     * thrown as an exception. The rest will either fail or succeed silently.
+     * Cancels all the messages with the provided IDs. Returns an array of results for each request in the same order
+     * the message IDs were added to the input array.
      *
-     * @param array $messageIds
+     * @param int[] $messageIds
      *
-     * @return void
-     * @throws UnauthorizedException
-     * @throws AlreadyCanceledOrSentException
-     * @throws ConnectionException
-     * @throws BaseException
+     * @return CancelResult[]
      */
-    public function cancelScheduledMessages(array $messageIds): void
+    public function cancelScheduledMessages(array $messageIds): array
     {
 
         if (!$messageIds) {
-            return;
+            return [];
         }
 
-        /** @var BaseException|UnauthorizedException|AlreadyCanceledOrSentException|ConnectionException $exception */
-        $exception = null;
-
+        /** @var Request[] $requests */
         $requests = [];
+
+        /** @var CancelResult[] $results */
+        $results = [];
 
         foreach ($messageIds as $id) {
 
-            $requests[] = new Request('DELETE', '/rest/mtsms/' . $id);
+            if (!is_int($id)) {
+                throw new \InvalidArgumentException(
+                    'Invalid message ID passed to cancelScheduledMessages. Must be an array of integers.'
+                );
+            }
 
+            $requests[] = new Request('DELETE', '/rest/mtsms/' . $id);
+            $results[] = new CancelResult($id);
         }
 
         (new Pool(
             $this->client, $requests, [
                              'concurrency' => 3,
-                             'fulfilled'   => function (ResponseInterface $response, $index) {
+                             'rejected'    => function (TransferException $reason, $index) use (&$results) {
 
-                                 // Great success.
+                                 $results[$index]->setStatus(CancelResult::STATUS_FAILED);
 
-                             },
-                             'rejected'    => function (GuzzleException $reason, $index) use (&$exception, $messageIds
-                             ) {
+                                 if ($reason instanceof RequestException) {
 
-                                 if (!$exception) {
+                                     $results[$index]->setException(
+                                         $this->handleErrorResponse(
+                                             $reason->getResponse()
+                                         )
+                                     );
 
-                                     if ($reason instanceof RequestException) {
+                                 } else {
 
-                                         $exception = $this->handleErrorResponse(
-                                             $reason->getResponse(),
-                                             $messageIds[$index]
-                                         );
-
-                                     } else {
-
-                                         $exception = new ConnectionException(
+                                     $results[$index]->setException(
+                                         new ConnectionException(
                                              'Failed to connect to GatewayAPI: ' . $reason->getMessage()
-                                         );
-
-                                     }
+                                         )
+                                     );
 
                                  }
 
-                             },
+                             }
                          ]
         ))->promise()
             ->wait();
 
-        if ($exception) {
-
-            throw $exception;
-
-        }
+        return $results;
 
     }
 
@@ -319,18 +312,15 @@ class GatewayAPIHandler
 
     /**
      * @param ResponseInterface $response
-     * @param int|null          $resourceId
      *
      * @return BaseException|AlreadyCanceledOrSentException|InsufficientFundsException|MessageException|PastSendTimeException|UnauthorizedException|ConnectionException
      */
-    private function handleErrorResponse(ResponseInterface $response, ?int $resourceId = null)
+    private function handleErrorResponse(ResponseInterface $response)
     {
 
         if ($response->getStatusCode() === 410) {
 
-            return new AlreadyCanceledOrSentException(
-                $resourceId, $response
-            );
+            return new AlreadyCanceledOrSentException($response);
 
         }
 

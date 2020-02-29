@@ -12,8 +12,7 @@ class ConnectionException extends BaseException
 {
 
     /**
-     * This error is thrown if your account doesn't have enough credits to
-     * send the messages passed to deliverMessages().
+     * This exception is thrown if the connection to gatewayapi.com fails.
      *
      * @param string $error
      */

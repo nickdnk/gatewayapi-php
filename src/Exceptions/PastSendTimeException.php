@@ -14,7 +14,7 @@ class PastSendTimeException extends BaseException
 {
 
     /**
-     * This error is thrown when the sendtime parameter is in the past.
+     * This exception is thrown when the sendtime parameter is in the past.
      *
      * @param string            $code
      * @param ResponseInterface $response
