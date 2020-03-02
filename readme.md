@@ -19,7 +19,7 @@ As we use return types and type hints, this library requires PHP 7.1.
 
 ### How to use
 
-#### Sending SMS
+#### Example #1: Sending SMS
 
 ```php
 use nickdnk\GatewayAPI\GatewayAPIHandler;
@@ -190,7 +190,7 @@ try {
 
 }
 ```
-#### Canceling scheduled messages
+#### Example #2: Canceling scheduled messages
 You can cancel a scheduled SMS based on the ID returned when sending.
 As this method creates a pool of requests (1 per message ID) it does
 not throw exceptions but returns an array of `CancelResult`. Each of
@@ -220,15 +220,20 @@ foreach ($results as $cancelResult) {
 
 }
 ```
-#### Parsing Webhooks
+#### Example #3: Parsing webhooks
 You can easily parse webhooks sent from GatewayAPI to your server
 using the `Webhook` class. This uses the JWT header to ensure that
 the webhook has not been tampered with and is in fact coming from
 a trusted source.
 
-Two types of webhooks can be defined; delivery status notifications and
-incoming messages using keywords. Both are parsed by `Webhook` and returned
-as their corresponding class.
+To set up webhooks go to  **API** -> **Web Hooks** -> **REST**. Specify
+a JWT secret under Authentication after you've created the webhook.
+
+Two types of webhooks can be sent; delivery status notifications and
+incoming messages (MO traffic). Both are parsed by `Webhook` and
+returned as their corresponding class. To read incoming messages you have to
+subscribe to a keyword or number under **Subscriptions** -> **Keywords / Numbers**
+and assign the keyword or number to a webhook.
 ```php
 use nickdnk\GatewayAPI\DeliveryStatusWebhook;
 use nickdnk\GatewayAPI\IncomingMessageWebhook;
@@ -256,6 +261,7 @@ function (RequestInterface $request, ResponseInterface $response) {
             
             $webhook->getPhoneNumber();
             $webhook->getWebhookLabel();
+            $webhook->getMessageText();
             
         }
     
@@ -289,7 +295,7 @@ try {
     
 }
 ```
-#### Handling SMSMessages or Recipients as JSON
+#### Example #4: Handling SMSMessages or Recipients as JSON
 `SMSMessage` and `Recipient` are encoded into the the actual JSON sent
 to the API. If you put this output into a queue, or anything similar,
 and want them back as PHP objects later, you can use these methods to
