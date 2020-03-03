@@ -11,14 +11,14 @@ use GuzzleHttp\Pool;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\RequestOptions;
 use GuzzleHttp\Subscriber\Oauth\Oauth1;
-use nickdnk\GatewayAPI\Exceptions\AlreadyCanceledOrSentException;
 use nickdnk\GatewayAPI\Exceptions\BaseException;
 use nickdnk\GatewayAPI\Exceptions\ConnectionException;
 use nickdnk\GatewayAPI\Exceptions\InsufficientFundsException;
 use nickdnk\GatewayAPI\Exceptions\MessageException;
 use nickdnk\GatewayAPI\Exceptions\PastSendTimeException;
+use nickdnk\GatewayAPI\Exceptions\GatewayRequestException;
+use nickdnk\GatewayAPI\Exceptions\GatewayServerException;
 use nickdnk\GatewayAPI\Exceptions\UnauthorizedException;
-use Psr\Http\Message\ResponseInterface;
 use stdClass;
 
 /**
@@ -107,7 +107,7 @@ class GatewayAPIHandler
                                  if ($reason instanceof RequestException) {
 
                                      $results[$index]->setException(
-                                         $this->handleErrorResponse(
+                                         ResponseParser::handleErrorResponse(
                                              $reason->getResponse()
                                          )
                                      );
@@ -142,6 +142,8 @@ class GatewayAPIHandler
      *
      * @return Result
      * @throws BaseException
+     * @throws GatewayRequestException
+     * @throws GatewayServerException
      * @throws InsufficientFundsException
      * @throws PastSendTimeException
      * @throws ConnectionException
@@ -175,7 +177,9 @@ class GatewayAPIHandler
 
             }
 
-            throw new BaseException('Missing expected key/values from GatewayAPI response.', null, null);
+            throw new BaseException(
+                'Missing expected key/values from GatewayAPI response. Received: ' . json_encode($json), null, null
+            );
 
         } catch (PastSendTimeException $exception) {
 
@@ -216,11 +220,7 @@ class GatewayAPIHandler
                         } else {
 
                             // Don't keep looping if we cannot recover.
-                            throw new BaseException(
-                                'Failed to handle invalid \'sendtime\' parameter.',
-                                $exception->getGatewayAPIErrorCode(),
-                                $exception->getResponse()
-                            );
+                            throw $exception;
                         }
                     }
                 }
@@ -236,7 +236,7 @@ class GatewayAPIHandler
     /**
      * @return AccountBalance
      * @throws UnauthorizedException
-     * @throws BaseException|ConnectionException
+     * @throws GatewayRequestException|BaseException|ConnectionException
      */
     public function getCreditStatus(): AccountBalance
     {
@@ -261,7 +261,8 @@ class GatewayAPIHandler
      * @link https://gatewayapi.com/api/prices/list/sms/json
      *
      * @return array
-     * @throws ConnectionException|BaseException
+     * @throws BaseException
+     * @throws ConnectionException
      */
     public static function getPricesAsJSON(): array
     {
@@ -291,13 +292,13 @@ class GatewayAPIHandler
 
             }
 
-            throw new BaseException('Missing expected key/values from GatewayAPI response.', null, null);
+            throw new BaseException(
+                'Missing expected key/values from GatewayAPI price response: ' . json_encode($json), null, $response
+            );
 
         } catch (RequestException $exception) {
 
-            throw new BaseException(
-                'Failed to fetch GatewayAPI prices: ' . $exception->getMessage(), null, $exception->getResponse()
-            );
+            throw ResponseParser::handleErrorResponse($exception->getResponse());
 
         } catch (TransferException $exception) {
 
@@ -311,64 +312,11 @@ class GatewayAPIHandler
 
 
     /**
-     * @param ResponseInterface $response
-     *
-     * @return BaseException|AlreadyCanceledOrSentException|InsufficientFundsException|MessageException|PastSendTimeException|UnauthorizedException|ConnectionException
-     */
-    private function handleErrorResponse(ResponseInterface $response)
-    {
-
-        if ($response->getStatusCode() === 410) {
-
-            return new AlreadyCanceledOrSentException($response);
-
-        }
-
-        $json = json_decode($response->getBody(), true);
-
-        if (!$json) {
-            return new BaseException('Failed to parse error response from GatewayAPI.', null, $response);
-        }
-
-        $message = isset($json['message']) ? $json['message'] : null;
-        $code = isset($json['code']) ? $json['code'] : null;
-
-        if ($code === '0x0216') {
-            return new InsufficientFundsException($code, $response);
-        }
-
-        if ($code === '0x0308') {
-            return new PastSendTimeException($code, $response);
-        }
-
-        if ($response->getStatusCode() === 401) {
-
-            return new UnauthorizedException(
-                $message, $code, $response
-            );
-
-        }
-
-        if ($response->getStatusCode() === 422) {
-
-            return new MessageException(
-                $message, $code, $response
-            );
-
-        }
-
-        return new BaseException(
-            $message, $code, $response
-        );
-
-    }
-
-    /**
      * @param string     $method
      * @param string     $endPoint
      * @param array|null $body
      *
-     * @return Result
+     * @return array|string|null
      * @throws BaseException
      * @throws InsufficientFundsException
      * @throws MessageException
@@ -396,23 +344,11 @@ class GatewayAPIHandler
                 $parameters
             );
 
-            if ($response->getStatusCode() === 204) {
-                return null;
-            }
-
-            $json = json_decode($response->getBody(), true);
-
-            if (!$json) {
-                throw new BaseException(
-                    'Failed to parse successful response from GatewayAPI as JSON.', null, $response
-                );
-            }
-
-            return $json;
+            return ResponseParser::jsonDecodeResponse($response);
 
         } catch (RequestException $exception) {
 
-            throw $this->handleErrorResponse($exception->getResponse());
+            throw ResponseParser::handleErrorResponse($exception->getResponse());
 
         } catch (TransferException $exception) {
 

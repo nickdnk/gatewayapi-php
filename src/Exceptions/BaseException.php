@@ -43,7 +43,7 @@ class BaseException extends Exception
     }
 
     /**
-     * Returns the full HTTP response from GatewayAPI, if any. null if the request failed ano no response was received.
+     * Returns the full HTTP response from GatewayAPI, if any. null if the request failed and no response was received.
      * You can use this to implement your own error logic, retrieve the HTTP status code, log the full body or whatever
      * you want.
      *

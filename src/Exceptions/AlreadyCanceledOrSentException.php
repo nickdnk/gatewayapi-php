@@ -10,7 +10,7 @@ use Psr\Http\Message\ResponseInterface;
  *
  * @package nickdnk\GatewayAPI\Exceptions
  */
-class AlreadyCanceledOrSentException extends BaseException
+class AlreadyCanceledOrSentException extends GatewayRequestException
 {
 
     /**

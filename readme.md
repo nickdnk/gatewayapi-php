@@ -87,13 +87,13 @@ try {
     );
     
     // All message IDs returned.
-    $messageIds = $result->getMessageIds();
+    $result->getMessageIds();
 
     // The total cost of this request (all message IDs combined).
-    $totalCost = $result->getTotalCost();
+    $result->getTotalCost();
 
     // Currency you were charged in.
-    $currency = $result->getCurrency();
+    $result->getCurrency();
 
     // The number of messages sent. For a message that's 3 SMSes long
     // with 1000 recipients, this will be 3000.
@@ -107,24 +107,33 @@ try {
 } catch (nickdnk\GatewayAPI\Exceptions\InsufficientFundsException $e) {
 
     /**
+     * Extends GatewayRequestException.
+     * 
      * Your account has insufficient funds and you cannot send the
      * message(s) before you buy more credits at gatewayapi.com.
+     * 
+     * The request body can be retried after you top up your balance.
      */
 
 } catch (nickdnk\GatewayAPI\Exceptions\MessageException $e) {
 
     /**
+     * Extends GatewayRequestException.
+     * 
      * This should not happen if you properly use the library and pass
      * correct data into the functions, but it indicates that whatever
-     * you're doing is not allowed by GatewayAPI. It can happen if you
-     * add the same phone number (recipient) twice to an SMSMessage. To
-     * prevent this, add multiple SMSMessages to the array of messages
-     * to be sent, or call the send method twice.
-     *
-     * This can also happen if you don't use the tags function correctly,
+     * you're doing is not allowed by GatewayAPI.
+     * 
+     * It can happen if you add the same phone number (recipient) twice 
+     * to an SMSMessage or if you don't use the tags function correctly,
      * such as not providing a tag value for a recipient within a message
      * that has a defined set of tags, or if you provide a tag value as
      * an integer.
+     * 
+     * To add the same phone number twice to one request it must be in
+     * different SMSMessage objects.
+     * 
+     * Requests that throw this exception should *not* be retried!
      */
 
     // The error code (may be null)
@@ -139,9 +148,14 @@ try {
 } catch (nickdnk\GatewayAPI\Exceptions\UnauthorizedException $e) {
 
     /**
-     * There is something wrong with your credentials or your IP is
+     * Extends GatewayRequestException.
+     * 
+     * Something is wrong with your credentials or your IP is
      * banned. Make sure you API key and secret are valid or contact
      * customer support.
+     *
+     * The request body can be retried if you provide different
+     * credentials (or fix whatever is wrong).
      */
 
     // The error code (may be null)
@@ -153,11 +167,35 @@ try {
     // Full response.
     $e->getResponse()->getBody();
 
+} catch (nickdnk\GatewayAPI\Exceptions\GatewayServerException $e) {
+    
+    /**
+     * Extends GatewayRequestException.
+     * 
+     * Something is wrong with GatewayAPI.com. This exception simply
+     * extends GatewayRequestException but only applies to 500-range
+     * errors.
+     *
+     * The request body can (most likely) be retried.
+     */
+    
+     // The error code (may be null)
+    $e->getGatewayAPIErrorCode();
+    
+    // Error message, if present.
+    $e->getMessage();
+        
+    // Full response.
+    $e->getResponse()->getBody();
+    
 } catch (nickdnk\GatewayAPI\Exceptions\ConnectionException $e) {
 
     /**
      * Connection to GatewayAPI failed or timed out. Try again or
      * check their server status at https://status.gatewayapi.com/
+     *
+     * The request can/should be retried. This library does not 
+     * automatically retry requests that fail for this reason. 
      */
     
     // Error message.
@@ -328,7 +366,7 @@ If you want to run the unit tests that don't require credentials, simply
 run `vendor/bin/phpunit tests` from the root of the project.
 
 If you want to test the parts that interact with the API you must
-provide credentials in `GatewayAPIHandlerTest.php`, uncomment the line
+provide credentials in `GatewayAPIHandlerTest.php`, comment out the line
 that skips the test and run the above command. Note that this sends out
 live SMS and will cost you 1 SMS in credits per execution.
 

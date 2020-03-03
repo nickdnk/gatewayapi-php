@@ -21,7 +21,7 @@ class GatewayAPIHandlerTest extends TestCase
     protected function setUp(): void
     {
 
-        $this->markTestSkipped('Uncomment this line and provide credentials and a test phone number above.');
+        $this->markTestSkipped('Comment out this line and provide credentials and a test phone number above.');
 
         $this->handler = new GatewayAPIHandler(
             self::TEST_KEY, self::TEST_SECRET
