@@ -1,11 +1,16 @@
 <?php
 
 
-namespace nickdnk\GatewayAPI;
+namespace nickdnk\GatewayAPI\Entities\Webhooks;
 
 use nickdnk\GatewayAPI\Exceptions\WebhookException;
 use Psr\Http\Message\RequestInterface;
 
+/**
+ * Class Webhook
+ *
+ * @package nickdnk\GatewayAPI\Entities\Webhooks
+ */
 abstract class Webhook
 {
 

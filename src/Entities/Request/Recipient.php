@@ -1,7 +1,9 @@
 <?php
 
 
-namespace nickdnk\GatewayAPI;
+namespace nickdnk\GatewayAPI\Entities\Request;
+
+use InvalidArgumentException;
 
 /**
  * Class Recipient
@@ -27,10 +29,11 @@ class Recipient implements Constructable
         $array = json_decode($json, true);
 
         if (!$array) {
-            throw new \InvalidArgumentException('Invalid JSON passed to Recipient.');
+            throw new InvalidArgumentException('Invalid JSON passed to Recipient.');
         }
 
-        if (array_key_exists('msisdn', $array)
+        if (is_array($array)
+            && array_key_exists('msisdn', $array)
             && array_key_exists('tagvalues', $array)) {
 
             return new self(
@@ -39,7 +42,7 @@ class Recipient implements Constructable
 
         } else {
 
-            throw new \InvalidArgumentException('JSON passed to Recipient is missing required parameters.');
+            throw new InvalidArgumentException('JSON passed to Recipient is missing required parameters.');
 
         }
 
@@ -102,7 +105,7 @@ class Recipient implements Constructable
     {
 
         if ($this->countryCode === null) {
-            throw new \InvalidArgumentException('Country code is undefined for Recipient.');
+            throw new InvalidArgumentException('Country code is undefined for Recipient.');
         }
 
         return $this->countryCode;

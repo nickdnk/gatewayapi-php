@@ -1,9 +1,11 @@
 <?php
 
 
-namespace nickdnk\GatewayAPI;
+namespace nickdnk\GatewayAPI\Tests;
 
 use GuzzleHttp\Psr7\Request;
+use nickdnk\GatewayAPI\Entities\Webhooks\IncomingMessageWebhook;
+use nickdnk\GatewayAPI\Entities\Webhooks\Webhook;
 use PHPUnit\Framework\TestCase;
 
 class IncomingMessageWebhookTest extends TestCase
@@ -11,9 +13,6 @@ class IncomingMessageWebhookTest extends TestCase
 
     private const VALID_JWT = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MTAwMDAwMSwibXNpc2RuIjo0NTg3NjU0MzIxLCJyZWNlaXZlciI6NDUxMjA0LCJtZXNzYWdlIjoiZm9vIEhlbGxvIFdvcmxkIiwic2VudHRpbWUiOjE0NTAwMDAwMDAsIndlYmhvb2tfbGFiZWwiOiJ0ZXN0IiwiY291bnRyeV9jb2RlIjoiREsiLCJjb3VudHJ5X3ByZWZpeCI6NDUsInNlbmRlciI6InRlc3QiLCJ2YWxpZGl0eV9wZXJpb2QiOjM0MzQsImVuY29kaW5nIjoic3RyaW5nIiwibWNjIjoxMjMsIm1uYyI6MTI1LCJwYXlsb2FkIjoiYmluIiwidWRoIjoidWRoIHN0cmluZyJ9._Kk85q5mTBwnLi17mMVu7RmUDoFHFjsSuzjrVjmaH-M';
 
-    /**
-     * @throws Exceptions\WebhookException
-     */
     public function testConstructFromRequest()
     {
 
@@ -21,6 +20,7 @@ class IncomingMessageWebhookTest extends TestCase
             'POST', 'https://localhost', ['X-Gwapi-Signature' => self::VALID_JWT]
         );
 
+        /** @noinspection PhpUnhandledExceptionInspection */
         $webhook = Webhook::constructFromRequest($request, 'secret');
 
         $this->assertTrue($webhook instanceof IncomingMessageWebhook);

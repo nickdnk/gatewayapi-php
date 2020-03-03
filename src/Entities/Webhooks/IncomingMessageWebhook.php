@@ -1,8 +1,13 @@
 <?php
 
 
-namespace nickdnk\GatewayAPI;
+namespace nickdnk\GatewayAPI\Entities\Webhooks;
 
+/**
+ * Class IncomingMessageWebhook
+ *
+ * @package nickdnk\GatewayAPI\Entities\Webhooks
+ */
 class IncomingMessageWebhook extends Webhook
 {
 
@@ -146,6 +151,5 @@ class IncomingMessageWebhook extends Webhook
 
         return $this->countryPrefix;
     }
-
 
 }

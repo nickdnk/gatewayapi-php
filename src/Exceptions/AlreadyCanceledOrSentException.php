@@ -24,4 +24,5 @@ class AlreadyCanceledOrSentException extends GatewayRequestException
 
         parent::__construct('Message has already been canceled or sent.', null, $response);
     }
+
 }

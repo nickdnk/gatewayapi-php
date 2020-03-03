@@ -1,7 +1,7 @@
 <?php
 
 
-namespace nickdnk\GatewayAPI;
+namespace nickdnk\GatewayAPI\Entities;
 
 use nickdnk\GatewayAPI\Exceptions\BaseException;
 

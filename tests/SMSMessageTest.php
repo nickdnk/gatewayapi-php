@@ -1,8 +1,11 @@
 <?php
 
 
-namespace nickdnk\GatewayAPI;
+namespace nickdnk\GatewayAPI\Tests;
 
+use InvalidArgumentException;
+use nickdnk\GatewayAPI\Entities\Request\Recipient;
+use nickdnk\GatewayAPI\Entities\Request\SMSMessage;
 use PHPUnit\Framework\TestCase;
 
 class SMSMessageTest extends TestCase
@@ -39,7 +42,7 @@ class SMSMessageTest extends TestCase
     public function testConstructFromInvalidArray()
     {
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
 
         SMSMessage::constructFromJSON(
             json_encode(
@@ -64,4 +67,24 @@ class SMSMessageTest extends TestCase
         );
 
     }
+
+    public function testConstructFromInvalidJSON()
+    {
+
+        $this->expectException(InvalidArgumentException::class);
+
+        SMSMessage::constructFromJSON('blah');
+
+    }
+
+    public function testInvalidClass()
+    {
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $message = new SMSMessage('Test', 'test');
+        $message->setClass('something invalid');
+
+    }
+
 }
