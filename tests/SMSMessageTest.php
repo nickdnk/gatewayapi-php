@@ -1,8 +1,11 @@
 <?php
 
 
-namespace nickdnk\GatewayAPI;
+namespace nickdnk\GatewayAPI\Tests;
 
+use InvalidArgumentException;
+use nickdnk\GatewayAPI\Entities\Request\Recipient;
+use nickdnk\GatewayAPI\Entities\Request\SMSMessage;
 use PHPUnit\Framework\TestCase;
 
 class SMSMessageTest extends TestCase
@@ -31,7 +34,7 @@ class SMSMessageTest extends TestCase
 
         $this->assertEquals(4577364722, $self->getRecipients()[1]->getMsisdn());
         $this->assertEquals(['Mark', '23'], $self->getRecipients()[1]->getTagValues());
-        $this->assertEquals('reference text', $self->getUserref());
+        $this->assertEquals('reference text', $self->getUserReference());
         $this->assertEquals(1585835858, $self->getSendtime());
 
     }
@@ -39,7 +42,7 @@ class SMSMessageTest extends TestCase
     public function testConstructFromInvalidArray()
     {
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
 
         SMSMessage::constructFromJSON(
             json_encode(
@@ -62,6 +65,83 @@ class SMSMessageTest extends TestCase
                 ]
             )
         );
+
+    }
+
+    public function testConstructFromInvalidJSON()
+    {
+
+        $this->expectException(InvalidArgumentException::class);
+
+        SMSMessage::constructFromJSON('blah');
+
+    }
+
+    public function testInvalidClass()
+    {
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $message = new SMSMessage('Test', 'test');
+        $message->setClass('something invalid');
+
+    }
+
+    public function testSendTime()
+    {
+
+        $sendTime = time();
+
+        $message = new SMSMessage('test', 'sender');
+
+        $message->setSendTime($sendTime);
+
+        $this->assertEquals($sendTime, $message->getSendtime());
+
+        $message->removeSendTime();
+
+        $this->assertNull($message->getSendtime());
+    }
+
+    public function testAddRecipient()
+    {
+
+        $message = new SMSMessage('test', 'sender');
+
+        $recipient = new Recipient(4588888888);
+
+        $message->addRecipient($recipient);
+
+        $this->assertEquals([$recipient], $message->getRecipients());
+
+    }
+
+    public function testUserReference()
+    {
+
+        $message = new SMSMessage('test', 'sender');
+        $message->setUserReference('a reference');
+
+        $this->assertEquals('a reference', $message->getUserReference());
+
+    }
+
+    public function testSender()
+    {
+
+        $message = new SMSMessage('test', 'sender');
+
+        $this->assertEquals('sender', $message->getSender());
+
+    }
+
+    public function testTags()
+    {
+
+        $message = new SMSMessage('test', 'sender');
+        $message->setTags(['test tag']);
+
+        $this->assertEquals(['test tag'], $message->getTags());
 
     }
 }

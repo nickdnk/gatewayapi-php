@@ -1,7 +1,7 @@
 <?php
 
 
-namespace nickdnk\GatewayAPI;
+namespace nickdnk\GatewayAPI\Tests;
 
 use GuzzleHttp\Psr7\Response;
 use nickdnk\GatewayAPI\Exceptions\AlreadyCanceledOrSentException;
@@ -9,9 +9,10 @@ use nickdnk\GatewayAPI\Exceptions\GatewayRequestException;
 use nickdnk\GatewayAPI\Exceptions\GatewayServerException;
 use nickdnk\GatewayAPI\Exceptions\InsufficientFundsException;
 use nickdnk\GatewayAPI\Exceptions\MessageException;
-use nickdnk\GatewayAPI\Exceptions\PastSendTimeException;
 use nickdnk\GatewayAPI\Exceptions\UnauthorizedException;
+use nickdnk\GatewayAPI\ResponseParser;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\ResponseInterface;
 
 class ResponseParserTest extends TestCase
 {
@@ -57,6 +58,7 @@ class ResponseParserTest extends TestCase
         $exception = ResponseParser::handleErrorResponse($response);
 
         $this->assertInstanceOf(GatewayRequestException::class, $exception);
+        $this->assertInstanceOf(ResponseInterface::class, $exception->getResponse());
 
     }
 
@@ -68,17 +70,6 @@ class ResponseParserTest extends TestCase
         $exception = ResponseParser::handleErrorResponse($response);
 
         $this->assertInstanceOf(InsufficientFundsException::class, $exception);
-
-    }
-
-    public function testHandlePastSendTimeException()
-    {
-
-        $response = new Response(403, [], json_encode(['message' => 'whatever', 'code' => '0x0308']));
-
-        $exception = ResponseParser::handleErrorResponse($response);
-
-        $this->assertInstanceOf(PastSendTimeException::class, $exception);
 
     }
 
@@ -115,11 +106,24 @@ class ResponseParserTest extends TestCase
 
     }
 
+    public function testGeneric400Unknown()
+    {
+
+        $response = new Response(400, [], json_encode(['message' => 'whatever', 'code' => 'whatever']));
+
+        $exception = ResponseParser::handleErrorResponse($response);
+
+        $this->assertInstanceOf(GatewayRequestException::class, $exception);
+        $this->assertEquals('whatever', $exception->getGatewayAPIErrorCode());
+
+    }
+
     public function testHandleEmptyResponse()
     {
 
         $response = new Response(204);
 
+        /** @noinspection PhpUnhandledExceptionInspection */
         $this->assertNull(ResponseParser::jsonDecodeResponse($response));
 
     }

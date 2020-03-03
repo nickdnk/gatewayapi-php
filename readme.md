@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/nickdnk/gatewayapi-php.svg?branch=master)](https://travis-ci.com/nickdnk/gatewayapi-php)
+[![Coverage Status](https://coveralls.io/repos/github/nickdnk/gatewayapi-php/badge.svg?branch=master)](https://coveralls.io/github/nickdnk/gatewayapi-php?branch=master)
 # GatewayAPI PHP Library
 
 This library will allow you to integrate the **GatewayAPI.com** API in your project using modern PHP7 and an OOP structure.
@@ -23,8 +25,8 @@ As we use return types and type hints, this library requires PHP 7.1.
 
 ```php
 use nickdnk\GatewayAPI\GatewayAPIHandler;
-use nickdnk\GatewayAPI\Recipient;
-use nickdnk\GatewayAPI\SMSMessage;
+use nickdnk\GatewayAPI\Entities\Request\Recipient;
+use nickdnk\GatewayAPI\Entities\Request\SMSMessage;
 
 $handler = new GatewayAPIHandler('my_key', 'my_secret');
 
@@ -104,7 +106,7 @@ try {
     ? $result->getCountries()['UK']
     : 0;
 
-} catch (nickdnk\GatewayAPI\Exceptions\InsufficientFundsException $e) {
+} catch (\nickdnk\GatewayAPI\Exceptions\InsufficientFundsException $e) {
 
     /**
      * Extends GatewayRequestException.
@@ -115,7 +117,7 @@ try {
      * The request body can be retried after you top up your balance.
      */
 
-} catch (nickdnk\GatewayAPI\Exceptions\MessageException $e) {
+} catch (\nickdnk\GatewayAPI\Exceptions\MessageException $e) {
 
     /**
      * Extends GatewayRequestException.
@@ -145,7 +147,7 @@ try {
     // Full response.
     $e->getResponse()->getBody();
 
-} catch (nickdnk\GatewayAPI\Exceptions\UnauthorizedException $e) {
+} catch (\nickdnk\GatewayAPI\Exceptions\UnauthorizedException $e) {
 
     /**
      * Extends GatewayRequestException.
@@ -167,7 +169,7 @@ try {
     // Full response.
     $e->getResponse()->getBody();
 
-} catch (nickdnk\GatewayAPI\Exceptions\GatewayServerException $e) {
+} catch (\nickdnk\GatewayAPI\Exceptions\GatewayServerException $e) {
     
     /**
      * Extends GatewayRequestException.
@@ -182,13 +184,13 @@ try {
      // The error code (may be null)
     $e->getGatewayAPIErrorCode();
     
-    // Error message, if present.
+    // Error message.
     $e->getMessage();
         
     // Full response.
     $e->getResponse()->getBody();
     
-} catch (nickdnk\GatewayAPI\Exceptions\ConnectionException $e) {
+} catch (\nickdnk\GatewayAPI\Exceptions\ConnectionException $e) {
 
     /**
      * Connection to GatewayAPI failed or timed out. Try again or
@@ -200,30 +202,32 @@ try {
     
     // Error message.
     $e->getMessage();
-    
-    // The error code and response object will always be null.
 
-} catch (nickdnk\GatewayAPI\Exceptions\BaseException $e) {
+} catch (\nickdnk\GatewayAPI\Exceptions\BaseException $e) {
 
     /**
      * Something else is wrong.
      * All exceptions inherit from this one, so you can catch this error
      * to handle all errors the same way or implement your own error
      * handler based on the error code. Remember to check for nulls.
+     * 
+     * This exception is abstract, so you can check which class it is
+     * and go from there.
      */
-
-    // The error code (may be null).
-    $e->getGatewayAPIErrorCode();
     
-    // Error message, if present.
+    // Error message.
     $e->getMessage();
 
-    // HTTP response (may also be null on connection errors).
-    $response = $e->getResponse();
-    
-    if ($response !== null) {
+    if ($e instanceof \nickdnk\GatewayAPI\Exceptions\GatewayServerException) {
+        
+        // The error code (may be null).
+        $e->getGatewayAPIErrorCode();
+
+        $response = $e->getResponse();
+
         $response->getBody();
         $response->getStatusCode();
+
     }
 
 }
@@ -234,7 +238,7 @@ As this method creates a pool of requests (1 per message ID) it does
 not throw exceptions but returns an array of `CancelResult`. Each of
 these contain the status and (if failed) exception of the request.
 ```php
-use nickdnk\GatewayAPI\CancelResult;
+use nickdnk\GatewayAPI\Entities\CancelResult;
 use nickdnk\GatewayAPI\GatewayAPIHandler;
 
 $handler = new GatewayAPIHandler('my_key', 'my_secret');
@@ -273,9 +277,9 @@ returned as their corresponding class. To read incoming messages you have to
 subscribe to a keyword or number under **Subscriptions** -> **Keywords / Numbers**
 and assign the keyword or number to a webhook.
 ```php
-use nickdnk\GatewayAPI\DeliveryStatusWebhook;
-use nickdnk\GatewayAPI\IncomingMessageWebhook;
-use nickdnk\GatewayAPI\Webhook;
+use nickdnk\GatewayAPI\Entities\Webhooks\DeliveryStatusWebhook;
+use nickdnk\GatewayAPI\Entities\Webhooks\IncomingMessageWebhook;
+use nickdnk\GatewayAPI\Entities\Webhooks\Webhook;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -339,8 +343,8 @@ to the API. If you put this output into a queue, or anything similar,
 and want them back as PHP objects later, you can use these methods to
 do so.
 ```php
-use nickdnk\GatewayAPI\Recipient;
-use nickdnk\GatewayAPI\SMSMessage;
+use nickdnk\GatewayAPI\Entities\Request\Recipient;
+use nickdnk\GatewayAPI\Entities\Request\SMSMessage;
 
 $recipient = new Recipient(4587652222, ['Martha', '42442']);
 
@@ -363,12 +367,12 @@ $smsMessage->getRecipients();
 ### Tests
 
 If you want to run the unit tests that don't require credentials, simply
-run `vendor/bin/phpunit tests` from the root of the project.
+run `vendor/bin/phpunit` from the root of the project.
 
 If you want to test the parts that interact with the API you must
-provide credentials in `GatewayAPIHandlerTest.php`, comment out the line
-that skips the test and run the above command. Note that this sends out
-live SMS and will cost you 1 SMS in credits per execution.
+provide credentials in `GatewayAPIHandlerTest.php` and run the above
+command. Note that this sends out live SMS and will cost you 1 SMS in
+credits per execution.
 
 ### Contact
 

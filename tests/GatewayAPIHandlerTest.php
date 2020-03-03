@@ -1,11 +1,18 @@
 <?php
 
 
-namespace nickdnk\GatewayAPI;
+namespace nickdnk\GatewayAPI\Tests;
 
+use InvalidArgumentException;
+use nickdnk\GatewayAPI\Entities\CancelResult;
+use nickdnk\GatewayAPI\Entities\Response\AccountBalance;
+use nickdnk\GatewayAPI\Entities\Response\Prices;
 use nickdnk\GatewayAPI\Exceptions\AlreadyCanceledOrSentException;
 use nickdnk\GatewayAPI\Exceptions\MessageException;
 use nickdnk\GatewayAPI\Exceptions\UnauthorizedException;
+use nickdnk\GatewayAPI\GatewayAPIHandler;
+use nickdnk\GatewayAPI\Entities\Request\Recipient;
+use nickdnk\GatewayAPI\Entities\Request\SMSMessage;
 use PHPUnit\Framework\TestCase;
 
 class GatewayAPIHandlerTest extends TestCase
@@ -21,8 +28,6 @@ class GatewayAPIHandlerTest extends TestCase
     protected function setUp(): void
     {
 
-        $this->markTestSkipped('Comment out this line and provide credentials and a test phone number above.');
-
         $this->handler = new GatewayAPIHandler(
             self::TEST_KEY, self::TEST_SECRET
         );
@@ -31,8 +36,13 @@ class GatewayAPIHandlerTest extends TestCase
     public function testSendInvalidSMS()
     {
 
+        if (!self::TEST_SECRET || !self::TEST_KEY) {
+            $this->markTestSkipped('Key and secret missing.');
+        }
+
         $this->expectException(MessageException::class);
 
+        /** @noinspection PhpUnhandledExceptionInspection */
         $this->handler->deliverMessages(
             [
                 new SMSMessage(
@@ -48,6 +58,11 @@ class GatewayAPIHandlerTest extends TestCase
     public function testSendAndCancelSMS()
     {
 
+        if (!self::TEST_SECRET || !self::TEST_KEY) {
+            $this->markTestSkipped('Key and secret missing.');
+        }
+
+        /** @noinspection PhpUnhandledExceptionInspection */
         $result = $this->handler->deliverMessages(
             [
                 new SMSMessage(
@@ -82,6 +97,29 @@ class GatewayAPIHandlerTest extends TestCase
 
     }
 
+    public function testGetAccountBalance()
+    {
+
+        if (!self::TEST_SECRET || !self::TEST_KEY) {
+            $this->markTestSkipped('Key and secret missing.');
+        }
+
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $account = $this->handler->getCreditStatus();
+
+        $this->assertInstanceOf(AccountBalance::class, $account);
+
+    }
+
+    public function testCancelInvalidIDs()
+    {
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->handler->cancelScheduledMessages(['not an integer']);
+
+    }
+
     public function testInvalidCredentials()
     {
 
@@ -90,6 +128,7 @@ class GatewayAPIHandlerTest extends TestCase
         // replace credentials
         $this->handler = new GatewayAPIHandler('invalid', 'invalid');
 
+        /** @noinspection PhpUnhandledExceptionInspection */
         $this->handler->deliverMessages(
             [
                 new SMSMessage(
@@ -99,6 +138,16 @@ class GatewayAPIHandlerTest extends TestCase
                 )
             ]
         );
+
+    }
+
+    public function testGetPrices()
+    {
+
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $prices = GatewayAPIHandler::getPricesAsJSON();
+
+        $this->assertInstanceOf(Prices::class, $prices);
 
     }
 }

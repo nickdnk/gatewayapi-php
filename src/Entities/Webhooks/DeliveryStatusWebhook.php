@@ -1,8 +1,13 @@
 <?php
 
 
-namespace nickdnk\GatewayAPI;
+namespace nickdnk\GatewayAPI\Entities\Webhooks;
 
+/**
+ * Class DeliveryStatusWebhook
+ *
+ * @package nickdnk\GatewayAPI\Entities\Webhooks
+ */
 class DeliveryStatusWebhook extends Webhook
 {
 
@@ -34,8 +39,9 @@ class DeliveryStatusWebhook extends Webhook
 
     private $timestamp, $status, $userReference, $chargeStatus, $countryCode, $countryPrefix, $errorDescription, $errorCode;
 
-    public function __construct(int $messageId, int $phoneNumber, int $timestamp, string $status, ?string $userReference,
-        ?string $chargeStatus, ?string $countryCode, ?int $countryPrefix, ?string $errorDescription, ?string $errorCode
+    public function __construct(int $messageId, int $phoneNumber, int $timestamp, string $status,
+        ?string $userReference, ?string $chargeStatus, ?string $countryCode, ?int $countryPrefix,
+        ?string $errorDescription, ?string $errorCode
     )
     {
 

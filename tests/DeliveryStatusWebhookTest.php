@@ -1,9 +1,12 @@
 <?php
 
 
-namespace nickdnk\GatewayAPI;
+namespace nickdnk\GatewayAPI\Tests;
 
 use GuzzleHttp\Psr7\Request;
+use nickdnk\GatewayAPI\Entities\Webhooks\DeliveryStatusWebhook;
+use nickdnk\GatewayAPI\Exceptions\WebhookException;
+use nickdnk\GatewayAPI\Entities\Webhooks\Webhook;
 use PHPUnit\Framework\TestCase;
 
 class DeliveryStatusWebhookTest extends TestCase
@@ -11,9 +14,6 @@ class DeliveryStatusWebhookTest extends TestCase
 
     private const VALID_JWT = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MjM4MTcwMywibXNpc2RuIjo0NTQyNjA5MDQ1LCJ0aW1lIjoxNTIyNzY0MDYyLCJzdGF0dXMiOiJERUxJVkVSRUQiLCJlcnJvciI6ImVycm9yIHRleHQiLCJjb2RlIjoiZXJyb3IgY29kZSIsImNvdW50cnlfcHJlZml4Ijo0NSwiY291bnRyeV9jb2RlIjoiREsiLCJjaGFyZ2Vfc3RhdHVzIjoiQVVUSE9SSVpFRCIsInVzZXJyZWYiOiJhIHJlZmVyZW5jZSJ9.LgbbsxAj61SQhDA0A3dGlcT8OZN2UJsTgBiifNHEeh8';
 
-    /**
-     * @throws Exceptions\WebhookException
-     */
     public function testConstructFromRequest()
     {
 
@@ -21,9 +21,10 @@ class DeliveryStatusWebhookTest extends TestCase
             'POST', 'https://localhost', ['X-Gwapi-Signature' => self::VALID_JWT]
         );
 
+        /** @noinspection PhpUnhandledExceptionInspection */
         $webhook = Webhook::constructFromRequest($request, 'secret');
 
-        $this->assertTrue($webhook instanceof DeliveryStatusWebhook);
+        $this->assertInstanceOf(DeliveryStatusWebhook::class, $webhook);
 
         $this->assertEquals(2381703, $webhook->getMessageId());
         $this->assertEquals(4542609045, $webhook->getPhoneNumber());
@@ -38,30 +39,27 @@ class DeliveryStatusWebhookTest extends TestCase
 
     }
 
-    /**
-     * @throws Exceptions\WebhookException
-     */
+
     public function testMissingJWTHeader()
     {
 
-        $this->expectException(Exceptions\WebhookException::class);
+        $this->expectException(WebhookException::class);
         $this->expectExceptionMessage('Missing webhook JWT header');
 
         $request = new Request(
             'POST', 'https://localhost'
         );
 
+        /** @noinspection PhpUnhandledExceptionInspection */
         Webhook::constructFromRequest($request, 'whatever');
 
     }
 
-    /**
-     * @throws Exceptions\WebhookException
-     */
+
     public function testMissingRequiredKeys()
     {
 
-        $this->expectException(Exceptions\WebhookException::class);
+        $this->expectException(WebhookException::class);
         $this->expectExceptionMessage('Webhook missing required keys');
 
         $request = new Request(
@@ -70,47 +68,43 @@ class DeliveryStatusWebhookTest extends TestCase
                   ]
         );
 
+        /** @noinspection PhpUnhandledExceptionInspection */
         Webhook::constructFromRequest($request, 'secret');
 
     }
 
-    /**
-     * @throws Exceptions\WebhookException
-     */
     public function testInvalidJWT()
     {
 
-        $this->expectException(Exceptions\WebhookException::class);
+        $this->expectException(WebhookException::class);
         $this->expectExceptionMessage('Failed to parse');
 
         $request = new Request(
             'POST', 'https://localhost', ['X-Gwapi-Signature' => 'not_valid']
         );
 
+        /** @noinspection PhpUnhandledExceptionInspection */
         Webhook::constructFromRequest($request, 'whatever');
 
     }
 
-    /**
-     * @throws Exceptions\WebhookException
-     */
+
     public function testInvalidSignature()
     {
 
-        $this->expectException(Exceptions\WebhookException::class);
+        $this->expectException(WebhookException::class);
         $this->expectExceptionMessage('failed signature');
 
         $request = new Request(
             'POST', 'https://localhost', ['X-Gwapi-Signature' => self::VALID_JWT]
         );
 
+        /** @noinspection PhpUnhandledExceptionInspection */
         Webhook::constructFromRequest($request, 'wrong');
 
     }
 
-    /**
-     * @throws Exceptions\WebhookException
-     */
+
     public function testHS512()
     {
 
@@ -120,9 +114,43 @@ class DeliveryStatusWebhookTest extends TestCase
                   ]
         );
 
+        /** @noinspection PhpUnhandledExceptionInspection */
         $webhook = Webhook::constructFromRequest($request, 'secret');
 
         $this->assertEquals(2381703, $webhook->getMessageId());
+
+    }
+
+    public function testHS384()
+    {
+
+        $request = new Request(
+            'POST', 'https://localhost', [
+                      'X-Gwapi-Signature' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJpZCI6MjM4MTcwMywibXNpc2RuIjo0NTQyNjA5MDQ1LCJ0aW1lIjoxNTIyNzY0MDYyLCJzdGF0dXMiOiJERUxJVkVSRUQiLCJlcnJvciI6bnVsbCwiY29kZSI6bnVsbCwidXNlcnJlZiI6bnVsbCwiY2FsbGJhY2tfdXJsIjoiaHR0cDovL2JiYWY3MTQyLm5ncm9rLmlvIiwiYXBpIjo0fQ.2itUNDqtCZyE6g320Tn8RRd0rykJEoFtVeffPzUKLmMGwrG3fCXufwbpc-43dYGA'
+                  ]
+        );
+
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $webhook = Webhook::constructFromRequest($request, 'secret');
+
+        $this->assertEquals(2381703, $webhook->getMessageId());
+
+    }
+
+    public function testNoAlgorithm()
+    {
+
+        $this->expectException(WebhookException::class);
+        $this->expectExceptionMessage('failed signature');
+
+        $request = new Request(
+            'POST', 'https://localhost', [
+                      'X-Gwapi-Signature' => 'eyJ0eXBlIjoiSldUIiwiYWxnIjoibm9uZSJ9.eyJpZCI6MjM4MTcwMywibXNpc2RuIjo0NTQyNjA5MDQ1LCJ0aW1lIjoxNTIyNzY0MDYyLCJzdGF0dXMiOiJERUxJVkVSRUQiLCJlcnJvciI6bnVsbCwiY29kZSI6bnVsbCwidXNlcnJlZiI6bnVsbCwiY2FsbGJhY2tfdXJsIjoiaHR0cDovL2JiYWY3MTQyLm5ncm9rLmlvIiwiYXBpIjo0fQ.KdfDH65bnQtgxEkFnpAQodOciAJedZFB13r9wEo8t3Y'
+                  ]
+        );
+
+        /** @noinspection PhpUnhandledExceptionInspection */
+        Webhook::constructFromRequest($request, 'secret');
 
     }
 }

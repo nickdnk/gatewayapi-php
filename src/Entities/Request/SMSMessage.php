@@ -1,7 +1,9 @@
 <?php
 
 
-namespace nickdnk\GatewayAPI;
+namespace nickdnk\GatewayAPI\Entities\Request;
+
+use InvalidArgumentException;
 
 /**
  * Class SMSMessage
@@ -35,10 +37,11 @@ class SMSMessage implements Constructable
         $array = json_decode($json, true);
 
         if (!$array) {
-            throw new \InvalidArgumentException('Invalid JSON passed to SMSMessage.');
+            throw new InvalidArgumentException('Invalid JSON passed to SMSMessage.');
         }
 
-        if (array_key_exists('class', $array)
+        if (is_array($array)
+            && array_key_exists('class', $array)
             && array_key_exists('message', $array)
             && array_key_exists('sender', $array)
             && array_key_exists('recipients', $array)
@@ -64,7 +67,7 @@ class SMSMessage implements Constructable
 
         } else {
 
-            throw new \InvalidArgumentException('JSON passed to SMSMessage is missing required parameters.');
+            throw new InvalidArgumentException('JSON passed to SMSMessage is missing required parameters.');
 
         }
 
@@ -117,7 +120,7 @@ class SMSMessage implements Constructable
         if ($class !== self::CLASS_STANDARD
             && $class !== self::CLASS_PREMIUM
             && $class !== self::CLASS_SECRET) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'SMS class must be one of the provided constants. Received value: ' . $class
             );
         }
@@ -163,9 +166,9 @@ class SMSMessage implements Constructable
     }
 
     /**
-     * @return int
+     * @return int|null
      */
-    public function getSendtime(): int
+    public function getSendtime(): ?int
     {
 
         return $this->sendtime;
@@ -174,7 +177,7 @@ class SMSMessage implements Constructable
     /**
      * @return string
      */
-    public function getUserref(): string
+    public function getUserReference(): string
     {
 
         return $this->userref;
@@ -244,5 +247,6 @@ class SMSMessage implements Constructable
 
         return $json;
     }
+
 
 }

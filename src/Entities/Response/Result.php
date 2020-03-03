@@ -1,14 +1,18 @@
 <?php
 
 
-namespace nickdnk\GatewayAPI;
+namespace nickdnk\GatewayAPI\Entities\Response;
+
+use nickdnk\GatewayAPI\Exceptions\SuccessfulResponseParsingException;
+use nickdnk\GatewayAPI\ResponseParser;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * Class Result
  *
  * @package nickdnk\GatewayAPI
  */
-class Result
+class Result implements ResponseEntity
 {
 
     private $totalCost, $smsCount, $currency, $countries, $messageIds;
@@ -95,5 +99,53 @@ class Result
         return $this->messageIds;
     }
 
+    /**
+     * @inheritDoc
+     *
+     * @return Result
+     */
+    public static function constructFromResponse(ResponseInterface $response): ResponseEntity
+    {
 
+        $array = ResponseParser::jsonDecodeResponse($response);
+
+        if (is_array($array)
+            && array_key_exists('usage', $array)
+            && is_array($array['usage'])
+
+            && array_key_exists('ids', $array)
+            && is_array($array['ids'])
+
+            && array_key_exists('total_cost', $array['usage'])
+            && is_float($array['usage']['total_cost'])
+
+            && array_key_exists('currency', $array['usage'])
+            && is_string($array['usage']['currency'])
+
+            && array_key_exists('countries', $array['usage'])
+            && is_array($array['usage']['countries'])) {
+
+            $smsCount = 0;
+
+            foreach ($array['usage']['countries'] as $country => $count) {
+
+                $smsCount += $count;
+
+            }
+
+            return new self(
+                $array['usage']['total_cost'],
+                $smsCount,
+                $array['usage']['currency'],
+                $array['usage']['countries'],
+                $array['ids']
+            );
+
+        }
+
+        throw new SuccessfulResponseParsingException(
+            'Failed to construct Result from input: ' . json_encode($array), $response
+        );
+
+    }
 }

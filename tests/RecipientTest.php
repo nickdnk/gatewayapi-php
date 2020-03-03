@@ -1,8 +1,10 @@
 <?php
 
 
-namespace nickdnk\GatewayAPI;
+namespace nickdnk\GatewayAPI\Tests;
 
+use InvalidArgumentException;
+use nickdnk\GatewayAPI\Entities\Request\Recipient;
 use PHPUnit\Framework\TestCase;
 
 class RecipientTest extends TestCase
@@ -25,7 +27,7 @@ class RecipientTest extends TestCase
     public function testConstructFromInvalidArray()
     {
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
 
         Recipient::constructFromJSON(
             json_encode(
@@ -35,6 +37,33 @@ class RecipientTest extends TestCase
                 ]
             )
         );
+
+    }
+
+    public function testConstructFromInvalidJSON()
+    {
+
+        $this->expectException(InvalidArgumentException::class);
+
+        Recipient::constructFromJSON('blah');
+
+    }
+
+    public function testNoCountryCode()
+    {
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $recipient = new Recipient(4588888888);
+        $recipient->getCountryCode();
+
+    }
+
+    public function testCountryCode()
+    {
+
+        $recipient = new Recipient(4588888888, [], 'DK');
+        $this->assertEquals('DK', $recipient->getCountryCode());
 
     }
 }

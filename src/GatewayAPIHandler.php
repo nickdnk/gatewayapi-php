@@ -11,15 +11,22 @@ use GuzzleHttp\Pool;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\RequestOptions;
 use GuzzleHttp\Subscriber\Oauth\Oauth1;
+use InvalidArgumentException;
+use nickdnk\GatewayAPI\Entities\Response\AccountBalance;
+use nickdnk\GatewayAPI\Entities\CancelResult;
+use nickdnk\GatewayAPI\Entities\Response\Prices;
+use nickdnk\GatewayAPI\Entities\Response\Result;
+use nickdnk\GatewayAPI\Entities\Request\SMSMessage;
+use nickdnk\GatewayAPI\Exceptions\AlreadyCanceledOrSentException;
 use nickdnk\GatewayAPI\Exceptions\BaseException;
 use nickdnk\GatewayAPI\Exceptions\ConnectionException;
 use nickdnk\GatewayAPI\Exceptions\InsufficientFundsException;
 use nickdnk\GatewayAPI\Exceptions\MessageException;
-use nickdnk\GatewayAPI\Exceptions\PastSendTimeException;
 use nickdnk\GatewayAPI\Exceptions\GatewayRequestException;
 use nickdnk\GatewayAPI\Exceptions\GatewayServerException;
+use nickdnk\GatewayAPI\Exceptions\SuccessfulResponseParsingException;
 use nickdnk\GatewayAPI\Exceptions\UnauthorizedException;
-use stdClass;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * Class GatewayAPIHandler
@@ -88,7 +95,7 @@ class GatewayAPIHandler
         foreach ($messageIds as $id) {
 
             if (!is_int($id)) {
-                throw new \InvalidArgumentException(
+                throw new InvalidArgumentException(
                     'Invalid message ID passed to cancelScheduledMessages. Must be an array of integers.'
                 );
             }
@@ -134,122 +141,35 @@ class GatewayAPIHandler
 
     /**
      * Sends an array of SMSMessages - either as their class or a regular PHP array (json_decoded).
-     * The second parameter determines if the library should automatically remove invalid sendtime parameters
-     * and retry the request when encountering this error.
      *
-     * @param SMSMessage[] $SMSMessages
-     * @param bool         $allowSendTimeAdjustment
+     * @param SMSMessage[] $messages
      *
      * @return Result
-     * @throws BaseException
+     * @throws SuccessfulResponseParsingException
      * @throws GatewayRequestException
      * @throws GatewayServerException
      * @throws InsufficientFundsException
-     * @throws PastSendTimeException
      * @throws ConnectionException
      * @throws MessageException
      * @throws UnauthorizedException
      */
-    public function deliverMessages(array $SMSMessages, bool $allowSendTimeAdjustment = true): Result
+    public function deliverMessages(array $messages): Result
     {
 
-        try {
-
-            $json = $this->makeRequest('POST', '/rest/mtsms', $SMSMessages);
-
-            if (isset($json['usage']) && isset($json['ids'])) {
-
-                $smsCount = 0;
-
-                foreach ($json['usage']['countries'] as $country => $count) {
-
-                    $smsCount += $count;
-
-                }
-
-                return new Result(
-                    $json['usage']['total_cost'],
-                    $smsCount,
-                    $json['usage']['currency'],
-                    $json['usage']['countries'],
-                    $json['ids']
-                );
-
-            }
-
-            throw new BaseException(
-                'Missing expected key/values from GatewayAPI response. Received: ' . json_encode($json), null, null
-            );
-
-        } catch (PastSendTimeException $exception) {
-
-            if (!$allowSendTimeAdjustment) {
-                throw $exception;
-            }
-
-            /**
-             * This error means the 'sendtime' parameter is in the past. This can happen if you queue
-             * the SMS message and there's a processing delay that causes the message to be delivered
-             * to GatewayAPI after the intended send time. We recover from this by removing this
-             * parameter and calling this method recursively.
-             */
-            foreach ($SMSMessages as &$aMessage) {
-
-                /**
-                 * In cases where the jobs are parsed to JSON (such as if processed via a queue),
-                 * the input to this method may be raw stdClass objects, and in that case we use
-                 * unset() instead of removeSendTime().
-                 */
-                if ($aMessage instanceof SMSMessage) {
-
-                    $aMessage->removeSendTime();
-
-                } else {
-
-                    if ($aMessage instanceof stdClass) {
-
-                        unset($aMessage->sendtime);
-
-                    } else {
-
-                        if (isset($aMessage['sendtime'])) {
-
-                            // If a JSON-parsed job was passed into this method using associative arrays
-                            unset($aMessage['sendtime']);
-
-                        } else {
-
-                            // Don't keep looping if we cannot recover.
-                            throw $exception;
-                        }
-                    }
-                }
-            }
-            unset($aMessage);
-
-            return $this->deliverMessages($SMSMessages, false);
-
-        }
+        return Result::constructFromResponse($this->makeRequest('POST', '/rest/mtsms', $messages));
 
     }
 
     /**
      * @return AccountBalance
      * @throws UnauthorizedException
-     * @throws GatewayRequestException|BaseException|ConnectionException
+     * @throws GatewayRequestException|BaseException|ConnectionException|SuccessfulResponseParsingException
      */
     public function getCreditStatus(): AccountBalance
     {
 
-        $json = $this->makeRequest('GET', '/rest/me');
+        return AccountBalance::constructFromResponse($this->makeRequest('GET', '/rest/me'));
 
-        if (isset($json['credit']) && isset($json['currency']) && isset($json['id'])) {
-
-            return new AccountBalance($json['credit'], $json['currency'], $json['id']);
-
-        }
-
-        throw new BaseException('Missing expected key/values from GatewayAPI response.', null, null);
     }
 
     /**
@@ -260,40 +180,23 @@ class GatewayAPIHandler
      *
      * @link https://gatewayapi.com/api/prices/list/sms/json
      *
-     * @return array
-     * @throws BaseException
+     * @return Prices
      * @throws ConnectionException
+     * @throws GatewayRequestException
      */
-    public static function getPricesAsJSON(): array
+    public static function getPricesAsJSON(): Prices
     {
 
         try {
 
-            $response = (new Client())->get(
-                'https://gatewayapi.com/api/prices/list/sms/json',
-                [
-                    'connect_timeout' => 15,
-                    'timeout'         => 30
-                ]
-            );
-
-            $json = json_decode($response->getBody(), true);
-
-            if ($json) {
-
-                if (isset($json['standard'])
-                    && isset($json['premium'])
-                    && is_array($json['standard'])
-                    && is_array($json['premium'])) {
-
-                    return $json;
-
-                }
-
-            }
-
-            throw new BaseException(
-                'Missing expected key/values from GatewayAPI price response: ' . json_encode($json), null, $response
+            return Prices::constructFromResponse(
+                (new Client())->get(
+                    'https://gatewayapi.com/api/prices/list/sms/json',
+                    [
+                        'connect_timeout' => 15,
+                        'timeout'         => 30
+                    ]
+                )
             );
 
         } catch (RequestException $exception) {
@@ -316,15 +219,16 @@ class GatewayAPIHandler
      * @param string     $endPoint
      * @param array|null $body
      *
-     * @return array|string|null
-     * @throws BaseException
+     * @return ResponseInterface
+     * @throws ConnectionException
+     * @throws AlreadyCanceledOrSentException
+     * @throws GatewayRequestException
+     * @throws GatewayServerException
      * @throws InsufficientFundsException
      * @throws MessageException
-     * @throws PastSendTimeException
-     * @throws ConnectionException
      * @throws UnauthorizedException
      */
-    private function makeRequest(string $method, string $endPoint, ?array $body = null)
+    private function makeRequest(string $method, string $endPoint, ?array $body = null): ResponseInterface
     {
 
         try {
@@ -338,13 +242,11 @@ class GatewayAPIHandler
                 $parameters['json'] = $body;
             }
 
-            $response = $this->client->request(
+            return $this->client->request(
                 $method,
                 $endPoint,
                 $parameters
             );
-
-            return ResponseParser::jsonDecodeResponse($response);
 
         } catch (RequestException $exception) {
 

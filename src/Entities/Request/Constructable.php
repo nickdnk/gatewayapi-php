@@ -1,9 +1,11 @@
 <?php
 
 
-namespace nickdnk\GatewayAPI;
+namespace nickdnk\GatewayAPI\Entities\Request;
 
-interface Constructable extends \JsonSerializable
+use JsonSerializable;
+
+interface Constructable extends JsonSerializable
 {
 
     /**
