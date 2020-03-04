@@ -9,7 +9,6 @@ use nickdnk\GatewayAPI\Exceptions\GatewayRequestException;
 use nickdnk\GatewayAPI\Exceptions\GatewayServerException;
 use nickdnk\GatewayAPI\Exceptions\InsufficientFundsException;
 use nickdnk\GatewayAPI\Exceptions\MessageException;
-use nickdnk\GatewayAPI\Exceptions\PastSendTimeException;
 use nickdnk\GatewayAPI\Exceptions\UnauthorizedException;
 use Psr\Http\Message\ResponseInterface;
 
@@ -60,7 +59,7 @@ class ResponseParser
     /**
      * @param ResponseInterface $response
      *
-     * @return GatewayRequestException|AlreadyCanceledOrSentException|InsufficientFundsException|MessageException|PastSendTimeException|UnauthorizedException|GatewayServerException|ConnectionException
+     * @return GatewayRequestException|AlreadyCanceledOrSentException|InsufficientFundsException|MessageException|UnauthorizedException|GatewayServerException|ConnectionException
      */
     public static function handleErrorResponse(ResponseInterface $response)
     {
@@ -87,10 +86,6 @@ class ResponseParser
 
         if ($code === '0x0216') {
             return new InsufficientFundsException('Your GatewayAPI account has insufficient funds.', $code, $response);
-        }
-
-        if ($code === '0x0308') {
-            return new PastSendTimeException('Message send time is in the past.', $code, $response);
         }
 
         if ($response->getStatusCode() === 401) {

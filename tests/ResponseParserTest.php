@@ -9,7 +9,6 @@ use nickdnk\GatewayAPI\Exceptions\GatewayRequestException;
 use nickdnk\GatewayAPI\Exceptions\GatewayServerException;
 use nickdnk\GatewayAPI\Exceptions\InsufficientFundsException;
 use nickdnk\GatewayAPI\Exceptions\MessageException;
-use nickdnk\GatewayAPI\Exceptions\PastSendTimeException;
 use nickdnk\GatewayAPI\Exceptions\UnauthorizedException;
 use nickdnk\GatewayAPI\ResponseParser;
 use PHPUnit\Framework\TestCase;
@@ -71,17 +70,6 @@ class ResponseParserTest extends TestCase
         $exception = ResponseParser::handleErrorResponse($response);
 
         $this->assertInstanceOf(InsufficientFundsException::class, $exception);
-
-    }
-
-    public function testHandlePastSendTimeException()
-    {
-
-        $response = new Response(403, [], json_encode(['message' => 'whatever', 'code' => '0x0308']));
-
-        $exception = ResponseParser::handleErrorResponse($response);
-
-        $this->assertInstanceOf(PastSendTimeException::class, $exception);
 
     }
 

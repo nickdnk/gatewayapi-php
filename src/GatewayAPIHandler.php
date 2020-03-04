@@ -21,13 +21,11 @@ use nickdnk\GatewayAPI\Exceptions\BaseException;
 use nickdnk\GatewayAPI\Exceptions\ConnectionException;
 use nickdnk\GatewayAPI\Exceptions\InsufficientFundsException;
 use nickdnk\GatewayAPI\Exceptions\MessageException;
-use nickdnk\GatewayAPI\Exceptions\PastSendTimeException;
 use nickdnk\GatewayAPI\Exceptions\GatewayRequestException;
 use nickdnk\GatewayAPI\Exceptions\GatewayServerException;
 use nickdnk\GatewayAPI\Exceptions\SuccessfulResponseParsingException;
 use nickdnk\GatewayAPI\Exceptions\UnauthorizedException;
 use Psr\Http\Message\ResponseInterface;
-use stdClass;
 
 /**
  * Class GatewayAPIHandler
@@ -142,78 +140,22 @@ class GatewayAPIHandler
 
     /**
      * Sends an array of SMSMessages - either as their class or a regular PHP array (json_decoded).
-     * The second parameter determines if the library should automatically remove invalid sendtime parameters
-     * and retry the request when encountering this error.
      *
      * @param SMSMessage[] $messages
-     * @param bool         $allowSendTimeAdjustment
      *
      * @return Result
      * @throws SuccessfulResponseParsingException
      * @throws GatewayRequestException
      * @throws GatewayServerException
      * @throws InsufficientFundsException
-     * @throws PastSendTimeException
      * @throws ConnectionException
      * @throws MessageException
      * @throws UnauthorizedException
      */
-    public function deliverMessages(array $messages, bool $allowSendTimeAdjustment = true): Result
+    public function deliverMessages(array $messages): Result
     {
 
-        try {
-
-            return Result::constructFromResponse($this->makeRequest('POST', '/rest/mtsms', $messages));
-
-        } catch (PastSendTimeException $exception) {
-
-            if (!$allowSendTimeAdjustment) {
-                throw $exception;
-            }
-
-            /**
-             * This error means the 'sendtime' parameter is in the past. This can happen if you queue
-             * the SMS message and there's a processing delay that causes the message to be delivered
-             * to GatewayAPI after the intended send time. We recover from this by removing this
-             * parameter and calling this method recursively.
-             */
-            foreach ($messages as &$aMessage) {
-
-                /**
-                 * In cases where the jobs are parsed to JSON (such as if processed via a queue),
-                 * the input to this method may be raw stdClass objects, and in that case we use
-                 * unset() instead of removeSendTime().
-                 */
-                if ($aMessage instanceof SMSMessage) {
-
-                    $aMessage->removeSendTime();
-
-                } else {
-
-                    if ($aMessage instanceof stdClass) {
-
-                        unset($aMessage->sendtime);
-
-                    } else {
-
-                        if (isset($aMessage['sendtime'])) {
-
-                            // If a JSON-parsed job was passed into this method using associative arrays
-                            unset($aMessage['sendtime']);
-
-                        } else {
-
-                            // Don't keep looping if we cannot recover.
-                            throw $exception;
-                        }
-                    }
-                }
-            }
-            unset($aMessage);
-
-            return $this->deliverMessages($messages, false);
-
-        }
+        return Result::constructFromResponse($this->makeRequest('POST', '/rest/mtsms', $messages));
 
     }
 
@@ -283,7 +225,6 @@ class GatewayAPIHandler
      * @throws GatewayServerException
      * @throws InsufficientFundsException
      * @throws MessageException
-     * @throws PastSendTimeException
      * @throws UnauthorizedException
      */
     private function makeRequest(string $method, string $endPoint, ?array $body = null): ResponseInterface

@@ -370,9 +370,9 @@ If you want to run the unit tests that don't require credentials, simply
 run `vendor/bin/phpunit` from the root of the project.
 
 If you want to test the parts that interact with the API you must
-provide credentials in `GatewayAPIHandlerTest.php`, comment out the line
-that skips the test and run the above command. Note that this sends out
-live SMS and will cost you 1 SMS in credits per execution.
+provide credentials in `GatewayAPIHandlerTest.php` and run the above
+command. Note that this sends out live SMS and will cost you 1 SMS in
+credits per execution.
 
 ### Contact
 
