@@ -147,6 +147,25 @@ try {
     // Full response.
     $e->getResponse()->getBody();
 
+} catch (\nickdnk\GatewayAPI\Exceptions\SuccessfulResponseParsingException $e) {
+
+    /**
+     * Extends GatewayRequestException.
+     * 
+     * If you implement automatic retries of failed requests, you should
+     * check for this exception. It is unlikely to ever occur, but it
+     * could happen if GatewayAPI changed their API or there was an error
+     * in the library. This could potentially trigger retries for requests
+     * that succeeded which would be expensive as well as problematic
+     * for recipients.
+     */
+    
+    // Error message.
+    $e->getMessage();
+
+    // Full response.
+    $e->getResponse()->getBody();
+
 } catch (\nickdnk\GatewayAPI\Exceptions\UnauthorizedException $e) {
 
     /**
