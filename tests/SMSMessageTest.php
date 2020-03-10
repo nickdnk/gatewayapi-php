@@ -144,4 +144,16 @@ class SMSMessageTest extends TestCase
         $this->assertEquals(['test tag'], $message->getTags());
 
     }
+
+    public function testRecipients()
+    {
+
+        $recipients = [new Recipient(4588888888)];
+
+        $message = new SMSMessage('test', 'sender');
+        $message->setRecipients($recipients);
+
+        $this->assertEquals($recipients, $message->getRecipients());
+
+    }
 }

@@ -226,6 +226,16 @@ class SMSMessage implements Constructable
         $this->recipients[] = $recipient;
     }
 
+    /**
+     * @param Recipient[] $recipients
+     */
+    public function setRecipients(array $recipients)
+    {
+
+        $this->recipients = $recipients;
+
+    }
+
     public function jsonSerialize()
     {
 
