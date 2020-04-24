@@ -53,7 +53,9 @@ class GatewayAPIHandler
             new Oauth1(
                 [
                     'consumer_key'    => $key,
-                    'consumer_secret' => $secret
+                    'consumer_secret' => $secret,
+                    'token'           => '',
+                    'token_secret'    => ''
                 ]
             )
         );
