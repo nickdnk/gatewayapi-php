@@ -28,6 +28,7 @@ class RecipientTest extends TestCase
     {
 
         $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Array passed to ' . Recipient::class . ' is missing required parameters.');
 
         Recipient::constructFromJSON(
             json_encode(
@@ -40,12 +41,34 @@ class RecipientTest extends TestCase
 
     }
 
-    public function testConstructFromInvalidJSON()
+    public function testConstructFromInvalidJSONString()
     {
 
         $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Failed to parse string as valid JSON.');
 
-        Recipient::constructFromJSON('blah');
+        Recipient::constructFromJSON('blah not json');
+
+    }
+
+    public function testConstructFromNonArray()
+    {
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid JSON passed to ' . Recipient::class);
+
+        // This is valid json and simply returns true/1
+        Recipient::constructFromJSON(true);
+
+    }
+
+    public function testConstructFromEmptyArray()
+    {
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid JSON passed to ' . Recipient::class);
+
+        Recipient::constructFromJSON('[]');
 
     }
 

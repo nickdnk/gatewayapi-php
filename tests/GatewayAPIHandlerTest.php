@@ -78,6 +78,8 @@ class GatewayAPIHandlerTest extends TestCase
             ]
         );
 
+        $this->assertEquals(2, $result->getTotalSMSCount());
+
         foreach ($result->getMessageIds() as $messageId) {
 
             $this->assertIsInt($messageId);

@@ -3,18 +3,18 @@
 
 namespace nickdnk\GatewayAPI\Entities\Response;
 
-use nickdnk\GatewayAPI\Exceptions\SuccessfulResponseParsingException;
-use nickdnk\GatewayAPI\ResponseParser;
-use Psr\Http\Message\ResponseInterface;
+use InvalidArgumentException;
+use nickdnk\GatewayAPI\Entities\Constructable;
 
 /**
  * Class AccountBalance
  *
  * @package nickdnk\GatewayAPI
  */
-class AccountBalance implements ResponseEntity
+class AccountBalance
 {
 
+    use Constructable;
 
     private $credit, $currency, $id;
 
@@ -69,31 +69,26 @@ class AccountBalance implements ResponseEntity
         return $this->id;
     }
 
-
     /**
      * @inheritDoc
      * @return AccountBalance
      */
-    public static function constructFromResponse(ResponseInterface $response): ResponseEntity
+    public static function constructFromArray(array $array)
     {
 
-        $json = ResponseParser::jsonDecodeResponse($response);
+        if (array_key_exists('credit', $array)
+            && array_key_exists('currency', $array)
+            && array_key_exists('id', $array)
+            && is_float($array['credit'])
+            && is_string($array['currency'])
+            && is_integer($array['id'])) {
 
-        if (is_array($json)
-            && array_key_exists('credit', $json)
-            && array_key_exists('currency', $json)
-            && array_key_exists('id', $json)
-            && is_float($json['credit'])
-            && is_string($json['currency'])
-            && is_integer($json['id'])) {
-
-            return new AccountBalance($json['credit'], $json['currency'], $json['id']);
+            return new AccountBalance($array['credit'], $array['currency'], $array['id']);
 
         }
 
-        throw new SuccessfulResponseParsingException(
-            'Failed to parse AccountBalance from: ' . json_encode($json), $response
-        );
+        throw new InvalidArgumentException('Array passed to ' . self::class . ' is missing required parameters.');
+
     }
 }
 

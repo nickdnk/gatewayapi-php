@@ -3,6 +3,9 @@
 
 namespace nickdnk\GatewayAPI\Entities\Webhooks;
 
+use nickdnk\GatewayAPI\Entities\Constructable;
+use nickdnk\GatewayAPI\Exceptions\WebhookException;
+
 /**
  * Class IncomingMessageWebhook
  *
@@ -11,9 +14,11 @@ namespace nickdnk\GatewayAPI\Entities\Webhooks;
 class IncomingMessageWebhook extends Webhook
 {
 
+    use Constructable;
+
     private $receiver, $message, $timestamp, $webhookLabel, $senderName, $mcc, $mnc, $validityPeriod, $encoding, $udh, $payload, $countryCode, $countryPrefix;
 
-    public function __construct(int $messageId, int $phoneNumber, int $receiver, string $message, int $timestamp,
+    protected function __construct(int $messageId, int $phoneNumber, int $receiver, string $message, int $timestamp,
         string $webhookLabel, ?string $senderName, ?int $mcc, ?int $mnc, ?int $validityPeriod, ?string $encoding,
         ?string $udh, ?string $payload, ?string $countryCode, ?int $countryPrefix
     )
@@ -152,4 +157,44 @@ class IncomingMessageWebhook extends Webhook
         return $this->countryPrefix;
     }
 
+    /**
+     * @inheritDoc
+     * @return IncomingMessageWebhook
+     * @throws WebhookException
+     */
+    public static function constructFromArray(array $array): self
+    {
+
+        if (array_key_exists('id', $array)
+            && array_key_exists('msisdn', $array)
+            && array_key_exists('receiver', $array)
+            && array_key_exists('message', $array)
+            && array_key_exists('senttime', $array)
+            && array_key_exists('webhook_label', $array)) {
+
+            return new self(
+                $array['id'],
+                $array['msisdn'],
+                $array['receiver'],
+                $array['message'],
+                $array['senttime'],
+                $array['webhook_label'],
+                array_key_exists('sender', $array) ? $array['sender'] : null,
+                array_key_exists('mcc', $array) ? $array['mcc'] : null,
+                array_key_exists('mnc', $array) ? $array['mnc'] : null,
+                array_key_exists('validity_period', $array) ? $array['validity_period'] : null,
+                array_key_exists('encoding', $array) ? $array['encoding'] : null,
+                array_key_exists('udh', $array) ? $array['udh'] : null,
+                array_key_exists('payload', $array) ? $array['payload'] : null,
+                array_key_exists('country_code', $array) ? $array['country_code'] : null,
+                array_key_exists('country_prefix', $array) ? $array['country_prefix'] : null
+            );
+
+        }
+
+        throw new WebhookException(
+            self::class . ' missing required keys. Got: ' . implode(',', array_keys($array))
+        );
+
+    }
 }

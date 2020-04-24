@@ -18,7 +18,6 @@ use nickdnk\GatewayAPI\Entities\Response\Prices;
 use nickdnk\GatewayAPI\Entities\Response\Result;
 use nickdnk\GatewayAPI\Entities\Request\SMSMessage;
 use nickdnk\GatewayAPI\Exceptions\AlreadyCanceledOrSentException;
-use nickdnk\GatewayAPI\Exceptions\BaseException;
 use nickdnk\GatewayAPI\Exceptions\ConnectionException;
 use nickdnk\GatewayAPI\Exceptions\InsufficientFundsException;
 use nickdnk\GatewayAPI\Exceptions\MessageException;
@@ -36,13 +35,12 @@ use Psr\Http\Message\ResponseInterface;
 class GatewayAPIHandler
 {
 
+    private const DOMAIN_ROOT = 'https://gatewayapi.com';
+
     private $client;
 
     /**
-     * GatewayAPIHandler constructor.
-     *
-     * Obtain a key and secret from the website.
-     * Save them as env-variables and pass them into your constructor when you need to send SMS messages.
+     * Obtain a key and secret from the website. This is a prerequisite for sending SMS.
      *
      * @param string $key
      * @param string $secret
@@ -55,17 +53,17 @@ class GatewayAPIHandler
             new Oauth1(
                 [
                     'consumer_key'    => $key,
-                    'consumer_secret' => $secret,
-                    'token'           => '',
-                    'token_secret'    => ''
+                    'consumer_secret' => $secret
                 ]
             )
         );
         $this->client = new Client(
             [
-                'base_uri'           => 'https://gatewayapi.com',
-                'handler'            => $stack,
-                RequestOptions::AUTH => 'oauth'
+                'base_uri'                      => self::DOMAIN_ROOT,
+                'handler'                       => $stack,
+                RequestOptions::AUTH            => 'oauth',
+                RequestOptions::CONNECT_TIMEOUT => 15,
+                RequestOptions::TIMEOUT         => 60
             ]
         );
 
@@ -107,23 +105,21 @@ class GatewayAPIHandler
         (new Pool(
             $this->client, $requests, [
                              'concurrency' => 3,
-                             'rejected'    => function (TransferException $reason, $index) use (&$results) {
+                             'rejected'    => function (TransferException $exception, $index) use (&$results) {
 
                                  $results[$index]->setStatus(CancelResult::STATUS_FAILED);
 
-                                 if ($reason instanceof RequestException) {
+                                 if ($exception instanceof RequestException) {
 
                                      $results[$index]->setException(
-                                         ResponseParser::handleErrorResponse(
-                                             $reason->getResponse()
-                                         )
+                                         GatewayRequestException::constructFromResponse($exception->getResponse())
                                      );
 
                                  } else {
 
                                      $results[$index]->setException(
                                          new ConnectionException(
-                                             'Failed to connect to GatewayAPI: ' . $reason->getMessage()
+                                             'Failed to connect to GatewayAPI: ' . $exception->getMessage()
                                          )
                                      );
 
@@ -140,9 +136,17 @@ class GatewayAPIHandler
 
 
     /**
-     * Sends an array of SMSMessages - either as their class or a regular PHP array (json_decoded).
+     * Sends an array of SMSMessages. You can safely pass the result of json-encoded and decoded SMSMessages into
+     * this function as well, such as in cases where the messages have been stored in a queue as JSON.
      *
-     * @param SMSMessage[] $messages
+     * For example, of these three, arrays of 1 and 3 are valid inputs:
+     * 1. $messages = new SMSMessage(...);
+     * 2. $json = json_encode($message);
+     * 3. $decoded = json_decode($json);
+     *
+     * These could even be mixed: [$messages, $decoded] would work fine (assuming they are not the same message).
+     *
+     * @param SMSMessage[]|array $messages
      *
      * @return Result
      * @throws SuccessfulResponseParsingException
@@ -161,9 +165,17 @@ class GatewayAPIHandler
     }
 
     /**
+     * Returns the account as defined by credentials.
+     * This shows the currency, account number and current balance of the account.
+     *
      * @return AccountBalance
+     * @throws ConnectionException
+     * @throws GatewayRequestException
+     * @throws GatewayServerException
+     * @throws InsufficientFundsException
+     * @throws MessageException
+     * @throws SuccessfulResponseParsingException
      * @throws UnauthorizedException
-     * @throws GatewayRequestException|BaseException|ConnectionException|SuccessfulResponseParsingException
      */
     public function getCreditStatus(): AccountBalance
     {
@@ -173,10 +185,8 @@ class GatewayAPIHandler
     }
 
     /**
-     *
      * Returns the prices as JSON. This is a public endpoint you can browse to at any time.
      * This is a convenience method that ensures proper parsing and handling of this endpoint.
-     * The return value is an associative array matching the raw response of this link.
      *
      * @link https://gatewayapi.com/api/prices/list/sms/json
      *
@@ -191,17 +201,18 @@ class GatewayAPIHandler
 
             return Prices::constructFromResponse(
                 (new Client())->get(
-                    'https://gatewayapi.com/api/prices/list/sms/json',
+                    self::DOMAIN_ROOT . '/api/prices/list/sms/json',
                     [
-                        'connect_timeout' => 15,
-                        'timeout'         => 30
+                        RequestOptions::CONNECT_TIMEOUT => 15,
+                        RequestOptions::TIMEOUT         => 30,
+                        RequestOptions::HTTP_ERRORS     => false
                     ]
                 )
             );
 
         } catch (RequestException $exception) {
 
-            throw ResponseParser::handleErrorResponse($exception->getResponse());
+            throw GatewayRequestException::constructFromResponse($exception->getResponse());
 
         } catch (TransferException $exception) {
 
@@ -220,8 +231,8 @@ class GatewayAPIHandler
      * @param array|null $body
      *
      * @return ResponseInterface
-     * @throws ConnectionException
      * @throws AlreadyCanceledOrSentException
+     * @throws ConnectionException
      * @throws GatewayRequestException
      * @throws GatewayServerException
      * @throws InsufficientFundsException
@@ -233,24 +244,15 @@ class GatewayAPIHandler
 
         try {
 
-            $parameters = [
-                "connect_timeout" => 15,
-                "timeout"         => 60
-            ];
-
-            if ($body !== null) {
-                $parameters['json'] = $body;
-            }
-
             return $this->client->request(
                 $method,
                 $endPoint,
-                $parameters
+                $body !== null ? [RequestOptions::JSON => $body] : []
             );
 
         } catch (RequestException $exception) {
 
-            throw ResponseParser::handleErrorResponse($exception->getResponse());
+            throw GatewayRequestException::constructFromResponse($exception->getResponse());
 
         } catch (TransferException $exception) {
 

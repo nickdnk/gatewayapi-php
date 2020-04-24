@@ -3,6 +3,9 @@
 
 namespace nickdnk\GatewayAPI\Entities\Webhooks;
 
+use nickdnk\GatewayAPI\Entities\Constructable;
+use nickdnk\GatewayAPI\Exceptions\WebhookException;
+
 /**
  * Class DeliveryStatusWebhook
  *
@@ -10,6 +13,8 @@ namespace nickdnk\GatewayAPI\Entities\Webhooks;
  */
 class DeliveryStatusWebhook extends Webhook
 {
+
+    use Constructable;
 
     /**
      * The message status enumerations.
@@ -39,7 +44,7 @@ class DeliveryStatusWebhook extends Webhook
 
     private $timestamp, $status, $userReference, $chargeStatus, $countryCode, $countryPrefix, $errorDescription, $errorCode;
 
-    public function __construct(int $messageId, int $phoneNumber, int $timestamp, string $status,
+    protected function __construct(int $messageId, int $phoneNumber, int $timestamp, string $status,
         ?string $userReference, ?string $chargeStatus, ?string $countryCode, ?int $countryPrefix,
         ?string $errorDescription, ?string $errorCode
     )
@@ -129,4 +134,37 @@ class DeliveryStatusWebhook extends Webhook
     }
 
 
+    /**
+     * @inheritDoc
+     * @return DeliveryStatusWebhook
+     * @throws WebhookException
+     */
+    public static function constructFromArray(array $array): self
+    {
+
+        if (array_key_exists('id', $array)
+            && array_key_exists('msisdn', $array)
+            && array_key_exists('time', $array)
+            && array_key_exists('status', $array)) {
+
+            return new self(
+                $array['id'],
+                $array['msisdn'],
+                $array['time'],
+                $array['status'],
+                array_key_exists('userref', $array) ? $array['userref'] : null,
+                array_key_exists('charge_status', $array) ? $array['charge_status'] : null,
+                array_key_exists('country_code', $array) ? $array['country_code'] : null,
+                array_key_exists('country_prefix', $array) ? $array['country_prefix'] : null,
+                array_key_exists('error', $array) ? $array['error'] : null,
+                array_key_exists('code', $array) ? $array['code'] : null
+            );
+
+        }
+
+        throw new WebhookException(
+            self::class . ' missing required keys. Got: ' . implode(',', array_keys($array))
+        );
+
+    }
 }

@@ -21,7 +21,8 @@ class CancelResultTest extends TestCase
         $cancelResult->setStatus(CancelResult::STATUS_FAILED);
         $this->assertEquals(CancelResult::STATUS_FAILED, $cancelResult->getStatus());
 
-        $exception = new GatewayRequestException('test', null, new Response(400));
+        $exception = new GatewayRequestException('test', null);
+        $exception->setResponse(new Response(400));
         $cancelResult->setException($exception);
         $this->assertEquals($exception, $cancelResult->getException());
 

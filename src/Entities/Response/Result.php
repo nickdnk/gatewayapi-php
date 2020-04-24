@@ -3,17 +3,18 @@
 
 namespace nickdnk\GatewayAPI\Entities\Response;
 
-use nickdnk\GatewayAPI\Exceptions\SuccessfulResponseParsingException;
-use nickdnk\GatewayAPI\ResponseParser;
-use Psr\Http\Message\ResponseInterface;
+use InvalidArgumentException;
+use nickdnk\GatewayAPI\Entities\Constructable;
 
 /**
  * Class Result
  *
  * @package nickdnk\GatewayAPI
  */
-class Result implements ResponseEntity
+class Result
 {
+
+    use Constructable;
 
     private $totalCost, $smsCount, $currency, $countries, $messageIds;
 
@@ -62,7 +63,7 @@ class Result implements ResponseEntity
 
     /**
      *
-     * Returns the 3-digit currency of the totalCost value, such as 'eur' for Euro.
+     * Returns the 3-digit currency of the totalCost value, such as `eur` for Euro.
      *
      * @return string
      */
@@ -75,7 +76,7 @@ class Result implements ResponseEntity
     /**
      *
      * Returns an array of all the countries as key and the number of messages sent to each country as value.
-     * For instance, to get the number of messages sent to UK (if any), you could do $result->getCountries()['UK'].
+     * For instance, to get the number of messages sent to UK (if any), you could do `$result->getCountries()['UK']`.
      * WARNING: An array key only exists if at least one message was sent to the corresponding country.
      *
      * @return array
@@ -89,7 +90,7 @@ class Result implements ResponseEntity
     /**
      *
      * Returns an array of the IDs of all messages delivered to GatewayAPI in the same order they were added
-     * to the request. These IDs can be passed directly into the cancelScheduledMessages()-method to cancel messages.
+     * to the request. These IDs can be passed directly into the `cancelScheduledMessages()`-method to cancel messages.
      *
      * @return int[]
      */
@@ -101,27 +102,19 @@ class Result implements ResponseEntity
 
     /**
      * @inheritDoc
-     *
      * @return Result
      */
-    public static function constructFromResponse(ResponseInterface $response): ResponseEntity
+    public static function constructFromArray(array $array)
     {
 
-        $array = ResponseParser::jsonDecodeResponse($response);
-
-        if (is_array($array)
-            && array_key_exists('usage', $array)
+        if (array_key_exists('usage', $array)
             && is_array($array['usage'])
-
             && array_key_exists('ids', $array)
             && is_array($array['ids'])
-
             && array_key_exists('total_cost', $array['usage'])
             && is_float($array['usage']['total_cost'])
-
             && array_key_exists('currency', $array['usage'])
             && is_string($array['usage']['currency'])
-
             && array_key_exists('countries', $array['usage'])
             && is_array($array['usage']['countries'])) {
 
@@ -143,9 +136,7 @@ class Result implements ResponseEntity
 
         }
 
-        throw new SuccessfulResponseParsingException(
-            'Failed to construct Result from input: ' . json_encode($array), $response
-        );
+        throw new InvalidArgumentException('Array passed to ' . self::class . ' is missing required parameters.');
 
     }
 }

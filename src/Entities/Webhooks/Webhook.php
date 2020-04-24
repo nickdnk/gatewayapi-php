@@ -22,7 +22,7 @@ abstract class Webhook
      * @param $messageId
      * @param $phoneNumber
      */
-    public function __construct(int $messageId, int $phoneNumber)
+    protected function __construct(int $messageId, int $phoneNumber)
     {
 
         $this->messageId = $messageId;
@@ -64,41 +64,14 @@ abstract class Webhook
                 && array_key_exists('senttime', $data)
                 && array_key_exists('webhook_label', $data)) {
 
-                return new IncomingMessageWebhook(
-                    $data['id'],
-                    $data['msisdn'],
-                    $data['receiver'],
-                    $data['message'],
-                    $data['senttime'],
-                    $data['webhook_label'],
-                    array_key_exists('sender', $data) ? $data['sender'] : null,
-                    array_key_exists('mcc', $data) ? $data['mcc'] : null,
-                    array_key_exists('mnc', $data) ? $data['mnc'] : null,
-                    array_key_exists('validity_period', $data) ? $data['validity_period'] : null,
-                    array_key_exists('encoding', $data) ? $data['encoding'] : null,
-                    array_key_exists('udh', $data) ? $data['udh'] : null,
-                    array_key_exists('payload', $data) ? $data['payload'] : null,
-                    array_key_exists('country_code', $data) ? $data['country_code'] : null,
-                    array_key_exists('country_prefix', $data) ? $data['country_prefix'] : null
-                );
+                return IncomingMessageWebhook::constructFromArray($data);
 
             }
 
             if (array_key_exists('time', $data)
                 && array_key_exists('status', $data)) {
 
-                return new DeliveryStatusWebhook(
-                    $data['id'],
-                    $data['msisdn'],
-                    $data['time'],
-                    $data['status'],
-                    array_key_exists('userref', $data) ? $data['userref'] : null,
-                    array_key_exists('charge_status', $data) ? $data['charge_status'] : null,
-                    array_key_exists('country_code', $data) ? $data['country_code'] : null,
-                    array_key_exists('country_prefix', $data) ? $data['country_prefix'] : null,
-                    array_key_exists('error', $data) ? $data['error'] : null,
-                    array_key_exists('code', $data) ? $data['code'] : null
-                );
+                return DeliveryStatusWebhook::constructFromArray($data);
 
             }
 
@@ -195,6 +168,10 @@ abstract class Webhook
     }
 
     /**
+     * Constructs a webhook from a PSR-7 request object. This automatically reads the JWT header, parses and validates
+     * it and returns one of the two possible webhook types. Note that the body of the request is entirely ignored,
+     * as the JWT header contains the full payload of the webhook.
+     *
      * @param RequestInterface $request
      * @param string           $secret
      *
@@ -211,6 +188,9 @@ abstract class Webhook
     }
 
     /**
+     * Parses a webhook using a JWT directly. This is equivalent to using `constructFromRequest()` if you have
+     * correctly extracted the JWT from the 'X-Gwapi-Signature' HTTP header of the request.
+     *
      * @param string $jwt
      * @param string $secret
      *

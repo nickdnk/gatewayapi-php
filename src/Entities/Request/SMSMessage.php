@@ -4,6 +4,8 @@
 namespace nickdnk\GatewayAPI\Entities\Request;
 
 use InvalidArgumentException;
+use JsonSerializable;
+use nickdnk\GatewayAPI\Entities\Constructable;
 
 /**
  * Class SMSMessage
@@ -17,8 +19,10 @@ use InvalidArgumentException;
  * @property string      $userref
  * @package nickdnk\GatewayAPI
  */
-class SMSMessage implements Constructable
+class SMSMessage implements JsonSerializable
 {
+
+    use Constructable;
 
     const CLASS_STANDARD = 'standard';
     const CLASS_PREMIUM  = 'premium';
@@ -27,31 +31,27 @@ class SMSMessage implements Constructable
     private $message, $sender, $recipients, $tags, $sendtime, $class, $userref;
 
     /**
-     * @param string $json
-     *
-     * @return SMSMessage
+     * @inheritDoc
      */
-    public static function constructFromJSON(string $json): Constructable
+    public static function constructFromArray(array $array)
     {
 
-        $array = json_decode($json, true);
-
-        if (!$array) {
-            throw new InvalidArgumentException('Invalid JSON passed to SMSMessage.');
-        }
-
-        if (is_array($array)
-            && array_key_exists('class', $array)
+        if (array_key_exists('class', $array)
             && array_key_exists('message', $array)
             && array_key_exists('sender', $array)
             && array_key_exists('recipients', $array)
-            && array_key_exists('tags', $array)) {
+            && array_key_exists('tags', $array)
+            && is_string($array['class'])
+            && is_string($array['message'])
+            && is_string($array['sender'])
+            && is_array($array['recipients'])
+            && is_array($array['tags'])) {
 
             $recipients = [];
 
             foreach ($array['recipients'] as $recipient) {
 
-                $recipients[] = new Recipient($recipient['msisdn'], $recipient['tagvalues']);
+                $recipients[] = Recipient::constructFromArray($recipient);
 
             }
 
@@ -65,11 +65,9 @@ class SMSMessage implements Constructable
                 $array['class']
             );
 
-        } else {
-
-            throw new InvalidArgumentException('JSON passed to SMSMessage is missing required parameters.');
-
         }
+
+        throw new InvalidArgumentException('Array passed to ' . self::class . ' is missing required parameters.');
 
     }
 
@@ -110,9 +108,10 @@ class SMSMessage implements Constructable
 
 
     /**
-     * Must be one of the available constants; standard, premium or secret.
+     * Must be one of the available constants; `standard`, `premium` or `secret`. Use the built-in constants provided
+     * by this class, i.e: `SMSMessage::CLASS_STANDARD`.
      *
-     * @param  $class
+     * @param string $class
      */
     public function setClass(string $class): void
     {
@@ -203,6 +202,9 @@ class SMSMessage implements Constructable
     }
 
 
+    /**
+     * Sets the send-time of the message to null. Messages with no send time are sent immediately.
+     */
     public function removeSendTime()
     {
 
@@ -220,6 +222,11 @@ class SMSMessage implements Constructable
         return $this->recipients;
     }
 
+    /**
+     * Adds a single recipient to the message.
+     *
+     * @param Recipient $recipient
+     */
     public function addRecipient(Recipient $recipient)
     {
 
@@ -227,6 +234,8 @@ class SMSMessage implements Constructable
     }
 
     /**
+     * Sets the recipient array, overriding any existing recipients of the message.
+     *
      * @param Recipient[] $recipients
      */
     public function setRecipients(array $recipients)

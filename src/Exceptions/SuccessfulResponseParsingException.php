@@ -25,6 +25,8 @@ class SuccessfulResponseParsingException extends GatewayRequestException
     public function __construct(string $message, ResponseInterface $response)
     {
 
-        parent::__construct($message, null, $response);
+        parent::__construct($message, null);
+        $this->setResponse($response);
+
     }
 }

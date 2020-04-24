@@ -3,15 +3,15 @@
 
 namespace nickdnk\GatewayAPI\Entities\Response;
 
-use nickdnk\GatewayAPI\Exceptions\SuccessfulResponseParsingException;
-use nickdnk\GatewayAPI\ResponseParser;
-use Psr\Http\Message\ResponseInterface;
+use InvalidArgumentException;
+use nickdnk\GatewayAPI\Entities\Constructable;
 
-class Prices implements ResponseEntity
+class Prices
 {
 
-    private $standard, $premium;
+    use Constructable;
 
+    private $standard, $premium;
 
     public function __construct(array $standard, array $premium)
     {
@@ -38,27 +38,23 @@ class Prices implements ResponseEntity
         return $this->premium;
     }
 
-
     /**
      * @inheritDoc
      * @return Prices
      */
-    public static function constructFromResponse(ResponseInterface $response): ResponseEntity
+    public static function constructFromArray(array $array)
     {
 
-        $json = ResponseParser::jsonDecodeResponse($response);
+        if (isset($array['standard'])
+            && isset($array['premium'])
+            && is_array($array['standard'])
+            && is_array($array['premium'])) {
 
-        if (is_array($json)
-            && isset($json['standard'])
-            && isset($json['premium'])
-            && is_array($json['standard'])
-            && is_array($json['premium'])) {
-
-            return new self($json['standard'], $json['premium']);
+            return new self($array['standard'], $array['premium']);
 
         }
 
-        throw new SuccessfulResponseParsingException('Failed to parse Prices from: ' . json_encode($json), $response);
+        throw new InvalidArgumentException('Array passed to ' . self::class . ' is missing required parameters.');
 
     }
 }

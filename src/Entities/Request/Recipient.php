@@ -4,6 +4,8 @@
 namespace nickdnk\GatewayAPI\Entities\Request;
 
 use InvalidArgumentException;
+use JsonSerializable;
+use nickdnk\GatewayAPI\Entities\Constructable;
 
 /**
  * Class Recipient
@@ -12,39 +14,31 @@ use InvalidArgumentException;
  * @property string[] $tagvalues
  * @package nickdnk\GatewayAPI
  */
-class Recipient implements Constructable
+class Recipient implements JsonSerializable
 {
+
+    use Constructable;
 
     private $msisdn, $tagvalues, $countryCode;
 
-
     /**
-     * @param string $json
-     *
-     * @return Recipient
+     * @inheritDoc
      */
-    public static function constructFromJSON(string $json): Constructable
+    public static function constructFromArray(array $array): self
     {
 
-        $array = json_decode($json, true);
-
-        if (!$array) {
-            throw new InvalidArgumentException('Invalid JSON passed to Recipient.');
-        }
-
-        if (is_array($array)
-            && array_key_exists('msisdn', $array)
-            && array_key_exists('tagvalues', $array)) {
+        if (array_key_exists('msisdn', $array)
+            && array_key_exists('tagvalues', $array)
+            && is_int($array['msisdn'])
+            && is_array($array['tagvalues'])) {
 
             return new self(
                 $array['msisdn'], $array['tagvalues']
             );
 
-        } else {
-
-            throw new InvalidArgumentException('JSON passed to Recipient is missing required parameters.');
-
         }
+
+        throw new InvalidArgumentException('Array passed to ' . self::class . ' is missing required parameters.');
 
     }
 
