@@ -142,11 +142,11 @@ class GatewayAPIHandler
      * this function as well, such as in cases where the messages have been stored in a queue as JSON.
      *
      * For example, of these three, arrays of 1 and 3 are valid inputs:
-     * 1. $messages = new SMSMessage(...);
+     * 1. $message = new SMSMessage(...);
      * 2. $json = json_encode($message);
      * 3. $decoded = json_decode($json);
      *
-     * These could even be mixed: [$messages, $decoded] would work fine (assuming they are not the same message).
+     * These could even be mixed: [$message, $decoded] would work fine (assuming they are not the same message).
      *
      * @param SMSMessage[]|array $messages
      *
