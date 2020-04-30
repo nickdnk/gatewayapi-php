@@ -50,13 +50,11 @@ class AccountBalanceTest extends TestCase
 
         try {
 
-            /** @noinspection PhpUnhandledExceptionInspection */
             AccountBalance::constructFromResponse($response);
 
         } catch (SuccessfulResponseParsingException $e) {
 
             $this->assertEquals($response, $e->getResponse());
-            /** @noinspection PhpUnhandledExceptionInspection */
             throw $e;
 
         }

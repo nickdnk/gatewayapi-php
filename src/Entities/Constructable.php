@@ -22,7 +22,7 @@ trait Constructable
     abstract public static function constructFromArray(array $array): self;
 
     /**
-     * Takes a JSON string and returns an instance of the Constructable using the abstract constructFromJson()
+     * Takes a JSON string and returns an instance of the Constructable using the abstract constructFromArray()
      * function which must be implemented by the subclass.
      *
      * @param string $json

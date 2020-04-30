@@ -46,7 +46,6 @@ class PricesTest extends TestCase
                )
         );
 
-        /** @noinspection PhpUnhandledExceptionInspection */
         Prices::constructFromResponse($response);
 
     }

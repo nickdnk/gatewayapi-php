@@ -53,7 +53,7 @@ abstract class Webhook
      * @return DeliveryStatusWebhook|IncomingMessageWebhook
      * @throws WebhookException
      */
-    private static function construct(array $data): Webhook
+    private static function constructWebhook(array $data): Webhook
     {
 
         if (array_key_exists('id', $data)
@@ -200,7 +200,7 @@ abstract class Webhook
     final public static function constructFromJWT(string $jwt, string $secret): Webhook
     {
 
-        return self::construct(self::parseAndValidateJWT($jwt, $secret));
+        return self::constructWebhook(self::parseAndValidateJWT($jwt, $secret));
 
     }
 

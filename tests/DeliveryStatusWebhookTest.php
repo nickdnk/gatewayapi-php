@@ -50,7 +50,6 @@ class DeliveryStatusWebhookTest extends TestCase
             'POST', 'https://localhost'
         );
 
-        /** @noinspection PhpUnhandledExceptionInspection */
         Webhook::constructFromRequest($request, 'whatever');
 
     }
@@ -68,7 +67,6 @@ class DeliveryStatusWebhookTest extends TestCase
                   ]
         );
 
-        /** @noinspection PhpUnhandledExceptionInspection */
         Webhook::constructFromRequest($request, 'secret');
 
     }
@@ -83,7 +81,6 @@ class DeliveryStatusWebhookTest extends TestCase
             'POST', 'https://localhost', ['X-Gwapi-Signature' => 'not_valid']
         );
 
-        /** @noinspection PhpUnhandledExceptionInspection */
         Webhook::constructFromRequest($request, 'whatever');
 
     }
@@ -99,7 +96,6 @@ class DeliveryStatusWebhookTest extends TestCase
             'POST', 'https://localhost', ['X-Gwapi-Signature' => self::VALID_JWT]
         );
 
-        /** @noinspection PhpUnhandledExceptionInspection */
         Webhook::constructFromRequest($request, 'wrong');
 
     }
@@ -149,7 +145,6 @@ class DeliveryStatusWebhookTest extends TestCase
                   ]
         );
 
-        /** @noinspection PhpUnhandledExceptionInspection */
         Webhook::constructFromRequest($request, 'secret');
 
     }

@@ -206,8 +206,7 @@ class GatewayAPIHandler
                     self::DOMAIN_ROOT . '/api/prices/list/sms/json',
                     [
                         RequestOptions::CONNECT_TIMEOUT => 15,
-                        RequestOptions::TIMEOUT         => 30,
-                        RequestOptions::HTTP_ERRORS     => false
+                        RequestOptions::TIMEOUT         => 30
                     ]
                 )
             );
