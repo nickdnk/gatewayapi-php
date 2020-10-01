@@ -20,7 +20,8 @@ class SMSMessageTest extends TestCase
                     'Hello! This is a message to %NAME% aged %AGE%!', 'Apple', [
                     new Recipient(4561232323, ['Joe', '22']),
                     new Recipient(4577364722, ['Mark', '23'])
-                ], 'reference text', ['%NAME%', '%AGE%'], 1585835858, SMSMessage::CLASS_SECRET
+                ], 'reference text', ['%NAME%', '%AGE%'], 1585835858, SMSMessage::CLASS_SECRET,
+                    'https://example.com/callback'
                 )
             )
         );
@@ -36,6 +37,8 @@ class SMSMessageTest extends TestCase
         $this->assertEquals(['Mark', '23'], $self->getRecipients()[1]->getTagValues());
         $this->assertEquals('reference text', $self->getUserReference());
         $this->assertEquals(1585835858, $self->getSendtime());
+
+        $this->assertEquals('https://example.com/callback', $self->getCallbackUrl());
 
     }
 
@@ -155,5 +158,14 @@ class SMSMessageTest extends TestCase
 
         $this->assertEquals($recipients, $message->getRecipients());
 
+    }
+
+    public function testCallbackUrl()
+    {
+
+        $message = new SMSMessage('test', 'sender');
+        $message->setCallbackUrl('https://example.com/callback');
+
+        $this->assertEquals('https://example.com/callback', $message->getCallbackUrl());
     }
 }

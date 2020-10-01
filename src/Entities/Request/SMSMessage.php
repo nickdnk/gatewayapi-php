@@ -17,6 +17,7 @@ use nickdnk\GatewayAPI\Entities\Constructable;
  * @property string[]    $tags
  * @property int         $sendtime
  * @property string      $userref
+ * @property string      $callbackUrl
  * @package nickdnk\GatewayAPI
  */
 class SMSMessage implements JsonSerializable
@@ -28,7 +29,7 @@ class SMSMessage implements JsonSerializable
     const CLASS_PREMIUM  = 'premium';
     const CLASS_SECRET   = 'secret';
 
-    private $message, $sender, $recipients, $tags, $sendtime, $class, $userref;
+    private $message, $sender, $recipients, $tags, $sendtime, $class, $userref, $callbackUrl;
 
     /**
      * @inheritDoc
@@ -62,7 +63,8 @@ class SMSMessage implements JsonSerializable
                 array_key_exists('userref', $array) ? $array['userref'] : null,
                 $array['tags'],
                 array_key_exists('sendtime', $array) ? $array['sendtime'] : null,
-                $array['class']
+                $array['class'],
+                array_key_exists('callback_url', $array) ? $array['callback_url'] : null
             );
 
         }
@@ -81,9 +83,11 @@ class SMSMessage implements JsonSerializable
      * @param string[]    $tags
      * @param int|null    $sendTime
      * @param string      $class
+     * @param string|null $callbackUrl
      */
     public function __construct(string $message, string $senderName, array $recipients = [],
-        ?string $userReference = null, array $tags = [], ?int $sendTime = null, string $class = self::CLASS_STANDARD
+        ?string $userReference = null, array $tags = [], ?int $sendTime = null, string $class = self::CLASS_STANDARD,
+        ?string $callbackUrl = null
     )
     {
 
@@ -93,6 +97,7 @@ class SMSMessage implements JsonSerializable
         $this->userref = $userReference;
         $this->tags = $tags;
         $this->sendtime = $sendTime;
+        $this->callbackUrl = $callbackUrl;
         $this->setClass($class);
 
     }
@@ -182,6 +187,14 @@ class SMSMessage implements JsonSerializable
         return $this->userref;
     }
 
+    /**
+     * @return string
+     */
+    public function getCallbackUrl(): string
+    {
+        return $this->callbackUrl;
+    }
+
 
     /**
      * @param int $sendTime
@@ -201,6 +214,13 @@ class SMSMessage implements JsonSerializable
         $this->userref = $userReference;
     }
 
+    /**
+     * @param string $callbackUrl
+     */
+    public function setCallbackUrl(string $callbackUrl): void
+    {
+        $this->callbackUrl = $callbackUrl;
+    }
 
     /**
      * Sets the send-time of the message to null. Messages with no send time are sent immediately.
@@ -262,6 +282,10 @@ class SMSMessage implements JsonSerializable
 
         if ($this->sendtime !== null) {
             $json['sendtime'] = $this->sendtime;
+        }
+
+        if ($this->callbackUrl !== null) {
+            $json['callback_url'] = $this->callbackUrl;
         }
 
         return $json;
