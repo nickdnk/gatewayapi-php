@@ -72,6 +72,7 @@ $message2->setSendTime(time() + 3600);
 $message2->setClass(SMSMessage::CLASS_PREMIUM);
 $message2->setUserReference('customer1');
 $message2->setTags(['%NAME%', '%CODE%']);
+$message2->setCallbackUrl('https://example.com/callback');
 
 $message2->addRecipient(new Recipient(4587652222, ['Martha', '42442']));
 
