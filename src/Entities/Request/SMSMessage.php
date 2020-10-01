@@ -15,7 +15,7 @@ use nickdnk\GatewayAPI\Entities\Constructable;
  * @property string      $sender
  * @property Recipient[] $recipients
  * @property string[]    $tags
- * @property int         $sendtime
+ * @property int|null    $sendtime
  * @property string|null $userref
  * @property string|null $callback_url
  * @package nickdnk\GatewayAPI
