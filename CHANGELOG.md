@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.1 - 2020-10-01
+* Added the `callback_url` parameter to `SMSMessage`. Thanks to @Matthew-Kilpatrick.
+* Fixed some minor nullability and phpdoc inconsistencies.
+
 ## 3.0 - 2020-04-30
 * Refactored `Constructable` into a trait.
 * [BC] `Webhook` constructor is now `protected` and the subclass constructors are `final`. If you implement this class like it was meant to (using the static constructors) you won't need to make any changes to your code.

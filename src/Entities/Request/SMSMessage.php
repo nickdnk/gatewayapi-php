@@ -16,8 +16,8 @@ use nickdnk\GatewayAPI\Entities\Constructable;
  * @property Recipient[] $recipients
  * @property string[]    $tags
  * @property int         $sendtime
- * @property string      $userref
- * @property string      $callbackUrl
+ * @property string|null $userref
+ * @property string|null $callback_url
  * @package nickdnk\GatewayAPI
  */
 class SMSMessage implements JsonSerializable
@@ -179,22 +179,21 @@ class SMSMessage implements JsonSerializable
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getUserReference(): string
+    public function getUserReference(): ?string
     {
 
         return $this->userref;
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getCallbackUrl(): string
+    public function getCallbackUrl(): ?string
     {
         return $this->callbackUrl;
     }
-
 
     /**
      * @param int $sendTime
