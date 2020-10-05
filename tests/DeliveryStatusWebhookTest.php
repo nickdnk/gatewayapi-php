@@ -39,6 +39,16 @@ class DeliveryStatusWebhookTest extends TestCase
 
     }
 
+    public function testInvalidArray()
+    {
+
+        $this->expectException(WebhookException::class);
+
+        DeliveryStatusWebhook::constructFromArray([
+            'this' => 'is not valid'
+        ]);
+
+    }
 
     public function testMissingJWTHeader()
     {
@@ -63,8 +73,8 @@ class DeliveryStatusWebhookTest extends TestCase
 
         $request = new Request(
             'POST', 'https://localhost', [
-                      'X-Gwapi-Signature' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MjM4MTcwMywibXNpc2RuIjo0NTQyNjA5MDQ1LCJzdGF0dXMiOiJERUxJVkVSRUQiLCJlcnJvciI6bnVsbCwiY29kZSI6bnVsbCwidXNlcnJlZiI6bnVsbCwiY2FsbGJhY2tfdXJsIjoiaHR0cDovL2JiYWY3MTQyLm5ncm9rLmlvIiwiYXBpIjo0fQ.6lYoTn05tdJZIke3pxZg-dCxLjCeaOuWgjk7Ln6UQtA'
-                  ]
+                'X-Gwapi-Signature' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MjM4MTcwMywibXNpc2RuIjo0NTQyNjA5MDQ1LCJzdGF0dXMiOiJERUxJVkVSRUQiLCJlcnJvciI6bnVsbCwiY29kZSI6bnVsbCwidXNlcnJlZiI6bnVsbCwiY2FsbGJhY2tfdXJsIjoiaHR0cDovL2JiYWY3MTQyLm5ncm9rLmlvIiwiYXBpIjo0fQ.6lYoTn05tdJZIke3pxZg-dCxLjCeaOuWgjk7Ln6UQtA'
+            ]
         );
 
         Webhook::constructFromRequest($request, 'secret');
@@ -106,8 +116,8 @@ class DeliveryStatusWebhookTest extends TestCase
 
         $request = new Request(
             'POST', 'https://localhost', [
-                      'X-Gwapi-Signature' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6MjM4MTcwMywibXNpc2RuIjo0NTQyNjA5MDQ1LCJ0aW1lIjoxNTIyNzY0MDYyLCJzdGF0dXMiOiJERUxJVkVSRUQiLCJlcnJvciI6bnVsbCwiY29kZSI6bnVsbCwidXNlcnJlZiI6bnVsbCwiY2FsbGJhY2tfdXJsIjoiaHR0cDovL2JiYWY3MTQyLm5ncm9rLmlvIiwiYXBpIjo0fQ.o3FGANwBGxEAK2tfFZtp9ZraDxUgwypBj0dq1C13IWEddpxcth8dQHngaQMq6FtbGpDO80pyMeedDSndzKMoag'
-                  ]
+                'X-Gwapi-Signature' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6MjM4MTcwMywibXNpc2RuIjo0NTQyNjA5MDQ1LCJ0aW1lIjoxNTIyNzY0MDYyLCJzdGF0dXMiOiJERUxJVkVSRUQiLCJlcnJvciI6bnVsbCwiY29kZSI6bnVsbCwidXNlcnJlZiI6bnVsbCwiY2FsbGJhY2tfdXJsIjoiaHR0cDovL2JiYWY3MTQyLm5ncm9rLmlvIiwiYXBpIjo0fQ.o3FGANwBGxEAK2tfFZtp9ZraDxUgwypBj0dq1C13IWEddpxcth8dQHngaQMq6FtbGpDO80pyMeedDSndzKMoag'
+            ]
         );
 
         /** @noinspection PhpUnhandledExceptionInspection */
@@ -122,8 +132,8 @@ class DeliveryStatusWebhookTest extends TestCase
 
         $request = new Request(
             'POST', 'https://localhost', [
-                      'X-Gwapi-Signature' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJpZCI6MjM4MTcwMywibXNpc2RuIjo0NTQyNjA5MDQ1LCJ0aW1lIjoxNTIyNzY0MDYyLCJzdGF0dXMiOiJERUxJVkVSRUQiLCJlcnJvciI6bnVsbCwiY29kZSI6bnVsbCwidXNlcnJlZiI6bnVsbCwiY2FsbGJhY2tfdXJsIjoiaHR0cDovL2JiYWY3MTQyLm5ncm9rLmlvIiwiYXBpIjo0fQ.2itUNDqtCZyE6g320Tn8RRd0rykJEoFtVeffPzUKLmMGwrG3fCXufwbpc-43dYGA'
-                  ]
+                'X-Gwapi-Signature' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJpZCI6MjM4MTcwMywibXNpc2RuIjo0NTQyNjA5MDQ1LCJ0aW1lIjoxNTIyNzY0MDYyLCJzdGF0dXMiOiJERUxJVkVSRUQiLCJlcnJvciI6bnVsbCwiY29kZSI6bnVsbCwidXNlcnJlZiI6bnVsbCwiY2FsbGJhY2tfdXJsIjoiaHR0cDovL2JiYWY3MTQyLm5ncm9rLmlvIiwiYXBpIjo0fQ.2itUNDqtCZyE6g320Tn8RRd0rykJEoFtVeffPzUKLmMGwrG3fCXufwbpc-43dYGA'
+            ]
         );
 
         /** @noinspection PhpUnhandledExceptionInspection */
@@ -141,8 +151,8 @@ class DeliveryStatusWebhookTest extends TestCase
 
         $request = new Request(
             'POST', 'https://localhost', [
-                      'X-Gwapi-Signature' => 'eyJ0eXBlIjoiSldUIiwiYWxnIjoibm9uZSJ9.eyJpZCI6MjM4MTcwMywibXNpc2RuIjo0NTQyNjA5MDQ1LCJ0aW1lIjoxNTIyNzY0MDYyLCJzdGF0dXMiOiJERUxJVkVSRUQiLCJlcnJvciI6bnVsbCwiY29kZSI6bnVsbCwidXNlcnJlZiI6bnVsbCwiY2FsbGJhY2tfdXJsIjoiaHR0cDovL2JiYWY3MTQyLm5ncm9rLmlvIiwiYXBpIjo0fQ.KdfDH65bnQtgxEkFnpAQodOciAJedZFB13r9wEo8t3Y'
-                  ]
+                'X-Gwapi-Signature' => 'eyJ0eXBlIjoiSldUIiwiYWxnIjoibm9uZSJ9.eyJpZCI6MjM4MTcwMywibXNpc2RuIjo0NTQyNjA5MDQ1LCJ0aW1lIjoxNTIyNzY0MDYyLCJzdGF0dXMiOiJERUxJVkVSRUQiLCJlcnJvciI6bnVsbCwiY29kZSI6bnVsbCwidXNlcnJlZiI6bnVsbCwiY2FsbGJhY2tfdXJsIjoiaHR0cDovL2JiYWY3MTQyLm5ncm9rLmlvIiwiYXBpIjo0fQ.KdfDH65bnQtgxEkFnpAQodOciAJedZFB13r9wEo8t3Y'
+            ]
         );
 
         Webhook::constructFromRequest($request, 'secret');

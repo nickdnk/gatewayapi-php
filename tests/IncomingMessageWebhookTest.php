@@ -6,6 +6,7 @@ namespace nickdnk\GatewayAPI\Tests;
 use GuzzleHttp\Psr7\Request;
 use nickdnk\GatewayAPI\Entities\Webhooks\IncomingMessageWebhook;
 use nickdnk\GatewayAPI\Entities\Webhooks\Webhook;
+use nickdnk\GatewayAPI\Exceptions\WebhookException;
 use PHPUnit\Framework\TestCase;
 
 class IncomingMessageWebhookTest extends TestCase
@@ -40,6 +41,17 @@ class IncomingMessageWebhookTest extends TestCase
         $this->assertEquals(3434, $webhook->getValidityPeriod());
         $this->assertEquals('test', $webhook->getSenderName());
         $this->assertEquals('udh string', $webhook->getUdh());
+
+    }
+
+    public function testInvalidArray()
+    {
+
+        $this->expectException(WebhookException::class);
+
+        IncomingMessageWebhook::constructFromArray([
+            'this' => 'is not valid'
+        ]);
 
     }
 }
