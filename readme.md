@@ -341,7 +341,7 @@ function (RequestInterface $request, ResponseInterface $response) {
  * Or if you don't have a PSR-7 request handy, you can pass the JWT
  * directly into this method instead. Note that the JWT contains
  * the entire payload, which is duplicated unsigned in the body of the
- * request and is ignored entirely by this library.
+ * request. We don't read the request body at all.
  */
 
 // JWT as a string, read from where-ever:
@@ -375,6 +375,7 @@ $recipient = Recipient::constructFromJSON($json);
 $message = new SMSMessage('Hello %NAME%! Your code is: %CODE%', 'MyService');
 $message->setSendTime(time() + 3600);
 $message->setUserReference('reference');
+$message->setTags(['%NAME%', '%CODE%']);
 $message->addRecipient($recipient);
 
 $json = json_encode($message);
