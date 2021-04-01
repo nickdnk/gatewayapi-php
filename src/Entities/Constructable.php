@@ -19,7 +19,7 @@ trait Constructable
      * @return static
      * @throws InvalidArgumentException
      */
-    abstract public static function constructFromArray(array $array): self;
+    abstract public static function constructFromArray(array $array);
 
     /**
      * Takes a JSON string and returns an instance of the Constructable using the abstract constructFromArray()
@@ -30,7 +30,7 @@ trait Constructable
      *
      * @return static
      */
-    public static function constructFromJSON(string $json, bool $throwExceptions = true): self
+    public static function constructFromJSON(string $json, bool $throwExceptions = true)
     {
 
         $array = json_decode($json, true);
