@@ -23,8 +23,9 @@ class Recipient implements JsonSerializable
 
     /**
      * @inheritDoc
+     * @return Recipient
      */
-    public static function constructFromArray(array $array): self
+    public static function constructFromArray(array $array)
     {
 
         if (array_key_exists('msisdn', $array)

@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.1.0 - 2021-04-01
+* Support for PHP 8.0.
+
 ## 3.0.1 - 2020-10-01
 * Added the `callback_url` parameter to `SMSMessage`. Thanks to @Matthew-Kilpatrick.
 * Fixed some minor nullability and phpdoc inconsistencies.

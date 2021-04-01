@@ -33,6 +33,7 @@ class SMSMessage implements JsonSerializable
 
     /**
      * @inheritDoc
+     * @return SMSMessage
      */
     public static function constructFromArray(array $array)
     {

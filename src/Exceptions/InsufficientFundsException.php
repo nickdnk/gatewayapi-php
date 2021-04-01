@@ -20,7 +20,6 @@ class InsufficientFundsException extends GatewayRequestException
 
     /**
      * @param array $array
-     *
      * @return InsufficientFundsException
      */
     public static function constructFromArray(array $array)
