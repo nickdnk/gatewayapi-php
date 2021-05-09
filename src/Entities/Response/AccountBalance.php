@@ -18,13 +18,6 @@ class AccountBalance
 
     private $credit, $currency, $id;
 
-    /**
-     * CurrencyStatus constructor.
-     *
-     * @param $credit
-     * @param $currency
-     * @param $id
-     */
     public function __construct(float $credit, string $currency, int $id)
     {
 
@@ -73,7 +66,7 @@ class AccountBalance
      * @inheritDoc
      * @return AccountBalance
      */
-    public static function constructFromArray(array $array)
+    public static function constructFromArray(array $array): AccountBalance
     {
 
         if (array_key_exists('credit', $array)

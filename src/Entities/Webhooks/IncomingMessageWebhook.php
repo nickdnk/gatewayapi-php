@@ -162,7 +162,7 @@ class IncomingMessageWebhook extends Webhook
      * @return IncomingMessageWebhook
      * @throws WebhookException
      */
-    public static function constructFromArray(array $array)
+    public static function constructFromArray(array $array): IncomingMessageWebhook
     {
 
         if (array_key_exists('id', $array)

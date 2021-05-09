@@ -54,16 +54,11 @@ trait Constructable
     /**
      * @param ResponseInterface $response
      *
-     * @return null|static
+     * @return static
      * @throws SuccessfulResponseParsingException
      */
-    public static function constructFromResponse(ResponseInterface $response): ?self
+    public static function constructFromResponse(ResponseInterface $response)
     {
-
-        if ($response->getStatusCode() === 204) {
-            // There is no reason to attempt to decode a 204 as the body must be empty according to HTTP spec.
-            return null;
-        }
 
         try {
 

@@ -21,11 +21,7 @@ class Recipient implements JsonSerializable
 
     private $msisdn, $tagvalues, $countryCode;
 
-    /**
-     * @inheritDoc
-     * @return Recipient
-     */
-    public static function constructFromArray(array $array)
+    public static function constructFromArray(array $array): Recipient
     {
 
         if (array_key_exists('msisdn', $array)
@@ -58,7 +54,7 @@ class Recipient implements JsonSerializable
         $this->countryCode = $countryCode;
     }
 
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
 
         return [

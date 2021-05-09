@@ -100,11 +100,7 @@ class Result
         return $this->messageIds;
     }
 
-    /**
-     * @inheritDoc
-     * @return Result
-     */
-    public static function constructFromArray(array $array)
+    public static function constructFromArray(array $array): Result
     {
 
         if (array_key_exists('usage', $array)
@@ -120,7 +116,7 @@ class Result
 
             $smsCount = 0;
 
-            foreach ($array['usage']['countries'] as $country => $count) {
+            foreach ($array['usage']['countries'] as $count) {
 
                 $smsCount += $count;
 

@@ -20,29 +20,19 @@ class Prices
         $this->premium = $premium;
     }
 
-    /**
-     * @return array
-     */
     public function getStandard(): array
     {
 
         return $this->standard;
     }
 
-    /**
-     * @return array
-     */
     public function getPremium(): array
     {
 
         return $this->premium;
     }
 
-    /**
-     * @inheritDoc
-     * @return Prices
-     */
-    public static function constructFromArray(array $array)
+    public static function constructFromArray(array $array): Prices
     {
 
         if (isset($array['standard'])

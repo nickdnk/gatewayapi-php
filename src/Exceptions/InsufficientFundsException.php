@@ -18,11 +18,7 @@ class InsufficientFundsException extends GatewayRequestException
      * Without overriding this we end up in an infinite loop.
      */
 
-    /**
-     * @param array $array
-     * @return InsufficientFundsException
-     */
-    public static function constructFromArray(array $array)
+    public static function constructFromArray(array $array): InsufficientFundsException
     {
 
         return new self($array['message'], $array['code']);

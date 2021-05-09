@@ -31,11 +31,7 @@ class SMSMessage implements JsonSerializable
 
     private $message, $sender, $recipients, $tags, $sendtime, $class, $userref, $callbackUrl;
 
-    /**
-     * @inheritDoc
-     * @return SMSMessage
-     */
-    public static function constructFromArray(array $array)
+    public static function constructFromArray(array $array): SMSMessage
     {
 
         if (array_key_exists('class', $array)
@@ -134,27 +130,18 @@ class SMSMessage implements JsonSerializable
 
     }
 
-    /**
-     * @return string
-     */
     public function getClass(): string
     {
 
         return $this->class;
     }
 
-    /**
-     * @return string
-     */
     public function getMessage(): string
     {
 
         return $this->message;
     }
 
-    /**
-     * @return string
-     */
     public function getSender(): string
     {
 
@@ -170,53 +157,35 @@ class SMSMessage implements JsonSerializable
         return $this->tags;
     }
 
-    /**
-     * @return int|null
-     */
     public function getSendtime(): ?int
     {
 
         return $this->sendtime;
     }
 
-    /**
-     * @return string|null
-     */
     public function getUserReference(): ?string
     {
 
         return $this->userref;
     }
 
-    /**
-     * @return string|null
-     */
     public function getCallbackUrl(): ?string
     {
         return $this->callbackUrl;
     }
 
-    /**
-     * @param int $sendTime
-     */
     public function setSendTime(int $sendTime): void
     {
 
         $this->sendtime = $sendTime;
     }
 
-    /**
-     * @param string $userReference
-     */
     public function setUserReference(string $userReference): void
     {
 
         $this->userref = $userReference;
     }
 
-    /**
-     * @param string $callbackUrl
-     */
     public function setCallbackUrl(string $callbackUrl): void
     {
         $this->callbackUrl = $callbackUrl;
@@ -225,7 +194,7 @@ class SMSMessage implements JsonSerializable
     /**
      * Sets the send-time of the message to null. Messages with no send time are sent immediately.
      */
-    public function removeSendTime()
+    public function removeSendTime(): void
     {
 
         $this->sendtime = null;
@@ -265,7 +234,7 @@ class SMSMessage implements JsonSerializable
 
     }
 
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
 
         $json = [

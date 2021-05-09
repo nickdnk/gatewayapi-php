@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.1.2 - 2021-05-10
+* Added compatibility with Guzzle 7.
+* Adjustments to tests and nullability.
+
+## 3.1.1 - 2021-05-09
+* Fixed use of incorrect Guzzle exception for detecting connection error vs. HTTP error.
+
 ## 3.1.0 - 2021-04-01
 * Support for PHP 8.0.
 

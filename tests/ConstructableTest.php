@@ -4,7 +4,6 @@
 namespace nickdnk\GatewayAPI\Tests;
 
 use GuzzleHttp\Psr7\Response;
-use nickdnk\GatewayAPI\Entities\Response\Result;
 use nickdnk\GatewayAPI\Exceptions\AlreadyCanceledOrSentException;
 use nickdnk\GatewayAPI\Exceptions\GatewayRequestException;
 use nickdnk\GatewayAPI\Exceptions\GatewayServerException;
@@ -23,6 +22,18 @@ class ConstructableTest extends TestCase
         $this->expectException(GatewayServerException::class);
 
         $response = new Response(500, [], json_encode(['error' => 'this is json']));
+
+        /** @noinspection PhpUnhandledExceptionInspection */
+        throw GatewayRequestException::constructFromResponse($response);
+
+    }
+
+    public function testHandleErrorResponse503ValidJSON()
+    {
+
+        $this->expectException(GatewayServerException::class);
+
+        $response = new Response(503, [], json_encode(['error' => 'this is json']));
 
         /** @noinspection PhpUnhandledExceptionInspection */
         throw GatewayRequestException::constructFromResponse($response);
@@ -136,16 +147,6 @@ class ConstructableTest extends TestCase
         $this->assertEquals('whatever', $exception->getGatewayAPIErrorCode());
         /** @noinspection PhpUnhandledExceptionInspection */
         throw $exception;
-
-    }
-
-    public function testHandleEmptyResponse()
-    {
-
-        $response = new Response(204);
-
-        /** @noinspection PhpUnhandledExceptionInspection */
-        $this->assertNull(Result::constructFromResponse($response));
 
     }
 

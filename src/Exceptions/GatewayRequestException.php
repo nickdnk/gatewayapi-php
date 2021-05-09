@@ -74,8 +74,6 @@ class GatewayRequestException extends BaseException
     public static function constructFromResponse(ResponseInterface $response)
     {
 
-        $error = null;
-
         if ($response->getStatusCode() === 401) {
             $error = UnauthorizedException::constructFromJSON($response->getBody(), false);
         } elseif ($response->getStatusCode() === 410) {

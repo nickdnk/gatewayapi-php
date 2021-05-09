@@ -16,12 +16,6 @@ abstract class Webhook
 
     private $messageId, $phoneNumber;
 
-    /**
-     * Webhook constructor.
-     *
-     * @param $messageId
-     * @param $phoneNumber
-     */
     protected function __construct(int $messageId, int $phoneNumber)
     {
 
@@ -29,18 +23,12 @@ abstract class Webhook
         $this->phoneNumber = $phoneNumber;
     }
 
-    /**
-     * @return int
-     */
     public function getMessageId(): int
     {
 
         return $this->messageId;
     }
 
-    /**
-     * @return int
-     */
     public function getPhoneNumber(): int
     {
 

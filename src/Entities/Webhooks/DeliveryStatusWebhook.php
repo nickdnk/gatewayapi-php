@@ -139,7 +139,7 @@ class DeliveryStatusWebhook extends Webhook
      * @return DeliveryStatusWebhook
      * @throws WebhookException
      */
-    public static function constructFromArray(array $array)
+    public static function constructFromArray(array $array): DeliveryStatusWebhook
     {
 
         if (array_key_exists('id', $array)
