@@ -4,7 +4,7 @@
 namespace nickdnk\GatewayAPI;
 
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\TransferException;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Pool;
@@ -111,7 +111,7 @@ class GatewayAPIHandler
 
                                  $results[$index]->setStatus(CancelResult::STATUS_FAILED);
 
-                                 if ($exception instanceof RequestException) {
+                                 if ($exception instanceof BadResponseException) {
 
                                      $results[$index]->setException(
                                          GatewayRequestException::constructFromResponse($exception->getResponse())
@@ -211,7 +211,7 @@ class GatewayAPIHandler
                 )
             );
 
-        } catch (RequestException $exception) {
+        } catch (BadResponseException $exception) {
 
             throw GatewayRequestException::constructFromResponse($exception->getResponse());
 
@@ -251,7 +251,7 @@ class GatewayAPIHandler
                 $body !== null ? [RequestOptions::JSON => $body] : []
             );
 
-        } catch (RequestException $exception) {
+        } catch (BadResponseException $exception) {
 
             throw GatewayRequestException::constructFromResponse($exception->getResponse());
 
