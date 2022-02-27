@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.2.0 - 2022-02-27
+* Added support for version `0.6.*` of `guzzlehttp/oauth-subscriber`.
+* Switched to GitHub actions instead of Travis.
+
 ## 3.1.2 - 2021-05-10
 * Added compatibility with Guzzle 7.
 * Adjustments to tests and nullability.
