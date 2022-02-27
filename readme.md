@@ -15,7 +15,7 @@ Once you have that you need to generate an API key/secret pair under **API** -> 
 
 To include this in your project, install it using Composer.
 
-This library requires PHP >= 7.1 and works on 8.0.
+This library requires PHP >= 7.1 and works on 8.0 and 8.1.
 
 `composer require nickdnk/gatewayapi-php`
 
