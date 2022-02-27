@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/nickdnk/gatewayapi-php.svg?branch=master)](https://travis-ci.com/nickdnk/gatewayapi-php)
+[![Build Status](https://github.com/nickdnk/gatewayapi-php/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/nickdnk/gatewayapi-php/actions)
 [![Coverage Status](https://coveralls.io/repos/github/nickdnk/gatewayapi-php/badge.svg?branch=master)](https://coveralls.io/github/nickdnk/gatewayapi-php?branch=master)
 # GatewayAPI PHP Library
 
