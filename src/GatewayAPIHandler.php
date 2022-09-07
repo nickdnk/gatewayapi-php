@@ -35,17 +35,20 @@ use Psr\Http\Message\ResponseInterface;
 class GatewayAPIHandler
 {
 
-    private const DOMAIN_ROOT = 'https://gatewayapi.com';
+    private const DOMAIN_ROOT_COM = 'https://gatewayapi.com';
+    private const DOMAIN_ROOT_EU  = 'https://gatewayapi.eu';
 
     private $client;
 
     /**
      * Obtain a key and secret from the website. This is a prerequisite for sending SMS.
+     * Pass `true` to `$euMode` to use the EU-only setup.
      *
      * @param string $key
      * @param string $secret
+     * @param bool $euMode
      */
-    public function __construct(string $key, string $secret)
+    public function __construct(string $key, string $secret, bool $euMode = false)
     {
 
         $stack = HandlerStack::create();
@@ -61,7 +64,7 @@ class GatewayAPIHandler
         );
         $this->client = new Client(
             [
-                'base_uri'                      => self::DOMAIN_ROOT,
+                'base_uri'                      => $euMode ? self::DOMAIN_ROOT_EU : self::DOMAIN_ROOT_COM,
                 'handler'                       => $stack,
                 RequestOptions::AUTH            => 'oauth',
                 RequestOptions::CONNECT_TIMEOUT => 15,
@@ -196,14 +199,14 @@ class GatewayAPIHandler
      * @throws ConnectionException
      * @throws GatewayRequestException
      */
-    public static function getPricesAsJSON(): Prices
+    public static function getPricesAsJSON(bool $euMode = false): Prices
     {
 
         try {
 
             return Prices::constructFromResponse(
                 (new Client())->get(
-                    self::DOMAIN_ROOT . '/api/prices/list/sms/json',
+                    ($euMode ? self::DOMAIN_ROOT_EU : self::DOMAIN_ROOT_COM) . '/api/prices/list/sms/json',
                     [
                         RequestOptions::CONNECT_TIMEOUT => 15,
                         RequestOptions::TIMEOUT         => 30

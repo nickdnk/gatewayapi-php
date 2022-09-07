@@ -19,6 +19,7 @@ class GatewayAPIHandlerTest extends TestCase
 {
 
     // Replace these with your own key, secret and phone number to run this test. It will cost you 1 SMS per test run.
+    // Pass `true` in `setUp` below to test against the EU-only configuration.
     private const TEST_KEY    = '';
     private const TEST_SECRET = '';
     private const TEST_NUMBER = 4588888888;
@@ -29,7 +30,7 @@ class GatewayAPIHandlerTest extends TestCase
     {
 
         $this->handler = new GatewayAPIHandler(
-            self::TEST_KEY, self::TEST_SECRET
+            self::TEST_KEY, self::TEST_SECRET, false
         );
     }
 
@@ -148,6 +149,16 @@ class GatewayAPIHandlerTest extends TestCase
 
         /** @noinspection PhpUnhandledExceptionInspection */
         $prices = GatewayAPIHandler::getPricesAsJSON();
+
+        $this->assertInstanceOf(Prices::class, $prices);
+
+    }
+
+    public function testGetPricesEu()
+    {
+
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $prices = GatewayAPIHandler::getPricesAsJSON(true);
 
         $this->assertInstanceOf(Prices::class, $prices);
 

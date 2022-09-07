@@ -15,7 +15,7 @@ Once you have that you need to generate an API key/secret pair under **API** -> 
 
 To include this in your project, install it using Composer.
 
-This library requires PHP >= 7.1 and works on 8.0 and 8.1.
+This library requires PHP >= 7.1 and works on 8.0, 8.1 and 8.2.
 
 `composer require nickdnk/gatewayapi-php`
 
@@ -28,7 +28,9 @@ use nickdnk\GatewayAPI\GatewayAPIHandler;
 use nickdnk\GatewayAPI\Entities\Request\Recipient;
 use nickdnk\GatewayAPI\Entities\Request\SMSMessage;
 
-$handler = new GatewayAPIHandler('my_key', 'my_secret');
+// Pass `true` as the third parameter to use GatewayAPI in EU-only mode.
+// This requires an EU account. See https://gatewayapi.com/blog/new-eu-setup-for-gatewayapi-customers/.
+$handler = new GatewayAPIHandler('my_key', 'my_secret', false);
 
 $message1 = new SMSMessage(
     
