@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.3.1 - 2024-09-02
+* Test against PHP 8.3.
+* Round the total cost of messages to 5 decimal points.
+
 ## 3.3.0 - 2022-09-07
 
 * Added support for EU-only mode: https://gatewayapi.com/blog/new-eu-setup-for-gatewayapi-customers/ - pass `true` to
