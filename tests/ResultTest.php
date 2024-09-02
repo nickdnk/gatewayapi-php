@@ -22,7 +22,7 @@ class ResultTest extends TestCase
                                'DK' => 4,
                                'SE' => 2
                            ],
-                           'total_cost' => 0.00596,
+                           'total_cost' => 0.005964,
                            'currency'   => 'eur'
                        ],
                        'ids'   => [1234567, 1234568]

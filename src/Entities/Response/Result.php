@@ -40,6 +40,9 @@ class Result
     /**
      *
      * Returns the total cost for the request as a decimal number.
+     * Rounded to a maximum of 5 decimal points using `PHP_ROUND_HALF_UP`.
+     * In practice, GatewayAPI only uses 4 decimal points, but their transaction
+     * log shows 5 digits.
      *
      * @return float
      */
@@ -123,7 +126,7 @@ class Result
             }
 
             return new self(
-                $array['usage']['total_cost'],
+                round($array['usage']['total_cost'], 5),
                 $smsCount,
                 $array['usage']['currency'],
                 $array['usage']['countries'],
