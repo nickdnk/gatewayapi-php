@@ -67,7 +67,7 @@ trait Constructable
         } catch (InvalidArgumentException $exception) {
 
             throw new SuccessfulResponseParsingException(
-                'Failed to construct \'' . static::class . '\' from: ' . json_encode($response->getBody()), $response
+                'Failed to construct \'' . static::class . '\' from: ' . $response->getBody(), $response
             );
 
         }

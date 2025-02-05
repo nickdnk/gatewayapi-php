@@ -69,14 +69,15 @@ class AccountBalance
     public static function constructFromArray(array $array): AccountBalance
     {
 
+        // Apparently credit is now a string, but used to be a float.
         if (array_key_exists('credit', $array)
             && array_key_exists('currency', $array)
             && array_key_exists('id', $array)
-            && is_float($array['credit'])
+            && (is_float($array['credit']) || is_string($array['credit']))
             && is_string($array['currency'])
             && is_integer($array['id'])) {
 
-            return new AccountBalance($array['credit'], $array['currency'], $array['id']);
+            return new AccountBalance((float)$array['credit'], $array['currency'], $array['id']);
 
         }
 
@@ -84,4 +85,3 @@ class AccountBalance
 
     }
 }
-

@@ -17,7 +17,7 @@ class AccountBalanceTest extends TestCase
         $response = new Response(
             200, [], json_encode(
                    [
-                       'credit'   => 1453.55,
+                       'credit'   => '1453.55',
                        'currency' => 'eur',
                        'id'       => 1232323
                    ]

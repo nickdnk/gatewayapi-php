@@ -2,7 +2,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/nickdnk/gatewayapi-php/badge.svg?branch=master)](https://coveralls.io/github/nickdnk/gatewayapi-php?branch=master)
 # GatewayAPI PHP Library
 
-This library will allow you to integrate the **GatewayAPI.com** API in your project using modern PHP7 and an OOP structure.
+This library will allow you to integrate the **GatewayAPI.com** API in your project using modern PHP.
 For full description of their API, error codes and so on, see: <https://gatewayapi.com/docs>.
 
 ### Prerequisites
@@ -15,7 +15,7 @@ Once you have that you need to generate an API key/secret pair under **API** -> 
 
 To include this in your project, install it using Composer.
 
-This library requires PHP >= 7.1 and works on 8.0, 8.1 and 8.2.
+This library requires PHP >= 7.3 and is tested against 8.0, 8.1, 8.2, 8.3 and 8.4.
 
 `composer require nickdnk/gatewayapi-php`
 

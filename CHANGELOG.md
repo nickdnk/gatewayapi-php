@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.0.0 - 2025-02-05
+* Require at least PHP 7.3.
+* Test against PHP 8.4.
+* Dropped support for Guzzle 6 (now requires Guzzle 7).
+* Updated requirements for `guzzlehttp/oauth-subscriber` to minimum `0.8.1` to address [CVE-2025-21617](https://nvd.nist.gov/vuln/detail/CVE-2025-21617).
+
 ## 3.3.1 - 2024-09-02
 * Test against PHP 8.3.
 * Round the total cost of messages to 5 decimal points.
