@@ -62,7 +62,10 @@ $message1 = new SMSMessage(
     // The message class to use. Note that prices vary. The secret class
     // requires approval by GatewayAPI on your account before you can use
     // it, otherwise you will get an error.
-    SMSMessage::CLASS_STANDARD
+    SMSMessage::CLASS_STANDARD,
+
+    // The encoding of the message. Use Unicode to allow lowercase special characters or emojis.
+    SMSMessage::ENCODING_UNICODE
 
 );
 
@@ -75,6 +78,7 @@ $message2->setClass(SMSMessage::CLASS_PREMIUM);
 $message2->setUserReference('customer1');
 $message2->setTags(['%NAME%', '%CODE%']);
 $message2->setCallbackUrl('https://example.com/callback');
+$message2->setEncoding(SMSMessage::ENCODING_UNICODE);
 
 $message2->addRecipient(new Recipient(4587652222, ['Martha', '42442']));
 
@@ -360,7 +364,7 @@ try {
 }
 ```
 #### Example #4: Handling SMSMessages or Recipients as JSON
-`SMSMessage` and `Recipient` are encoded into the the actual JSON sent
+`SMSMessage` and `Recipient` are encoded into the actual JSON sent
 to the API. If you put this output into a queue, or anything similar,
 and want them back as PHP objects later, you can use these methods to
 do so.
@@ -378,6 +382,7 @@ $message = new SMSMessage('Hello %NAME%! Your code is: %CODE%', 'MyService');
 $message->setSendTime(time() + 3600);
 $message->setUserReference('reference');
 $message->setTags(['%NAME%', '%CODE%']);
+$message->setEncoding(SMSMessage::ENCODING_UNICODE);
 $message->addRecipient($recipient);
 
 $json = json_encode($message);
