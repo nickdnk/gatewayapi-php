@@ -247,22 +247,14 @@ class SMSMessage implements JsonSerializable
 
     /**
      * Must be one of the available encodings; `UTF8` or `UCS2`. Use the built-in constants provided
-     * by this class, i.e: `SMSMessage::ENCODING_UNICODE`.
+     * by this class, i.e: `SMSMessage::ENCODING_UNICODE`. Passing null will remove the encoding.
+     * Messages with no encoding will be encoded using the default encoding.
      *
-     * @param string $encoding
+     * @param ?string $encoding
      */
-    public function setEncoding(string $encoding): void
+    public function setEncoding(?string $encoding): void
     {
         $this->encoding = $encoding;
-    }
-
-    /**
-     * Sets the encoding of the message to null. Messages with no encoding will be encoded using
-     * the default encoding.
-     */
-    public function removeEncoding(): void
-    {
-        $this->encoding = null;
     }
 
     public function jsonSerialize(): array

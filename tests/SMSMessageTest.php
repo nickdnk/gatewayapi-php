@@ -21,7 +21,7 @@ class SMSMessageTest extends TestCase
                     new Recipient(4561232323, ['Joe', '22']),
                     new Recipient(4577364722, ['Mark', '23'])
                 ], 'reference text', ['%NAME%', '%AGE%'], 1585835858, SMSMessage::CLASS_SECRET,
-                    'https://example.com/callback'
+                    'https://example.com/callback', SMSMessage::ENCODING_UNICODE
                 )
             )
         );
@@ -39,6 +39,10 @@ class SMSMessageTest extends TestCase
         $this->assertEquals(1585835858, $self->getSendtime());
 
         $this->assertEquals('https://example.com/callback', $self->getCallbackUrl());
+        $this->assertEquals(SMSMessage::ENCODING_UNICODE, $self->getEncoding());
+
+        $self->setEncoding(null);
+        $this->assertEquals(null, $self->getEncoding());
 
     }
 
