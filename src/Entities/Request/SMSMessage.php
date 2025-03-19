@@ -18,6 +18,7 @@ use nickdnk\GatewayAPI\Entities\Constructable;
  * @property int|null    $sendtime
  * @property string|null $userref
  * @property string|null $callback_url
+ * @property string|null $encoding
  * @package nickdnk\GatewayAPI
  */
 class SMSMessage implements JsonSerializable
@@ -29,7 +30,20 @@ class SMSMessage implements JsonSerializable
     const CLASS_PREMIUM  = 'premium';
     const CLASS_SECRET   = 'secret';
 
-    private $message, $sender, $recipients, $tags, $sendtime, $class, $userref, $callbackUrl;
+    /**
+     * Passing `UTF8` as encoding means the message will use the GSM-7 character set. To use emojis etc., use
+     * `SMSMessage::ENCODING_UCS2`.
+     * @link https://gatewayapi.com/docs/glossary/#gsm-7
+     */
+    const ENCODING_UTF8 = 'UTF8';
+    /**
+     * Passing `UCS2` as encoding means the message will use the UCS2 character set, which allows for emojis but
+     * increases message length.
+     * @link https://gatewayapi.com/docs/glossary/#ucs-2
+     */
+    const ENCODING_UCS2 = 'UCS2';
+
+    private $message, $sender, $recipients, $tags, $sendtime, $class, $userref, $callbackUrl, $encoding;
 
     public static function constructFromArray(array $array): SMSMessage
     {
@@ -61,7 +75,8 @@ class SMSMessage implements JsonSerializable
                 $array['tags'],
                 array_key_exists('sendtime', $array) ? $array['sendtime'] : null,
                 $array['class'],
-                array_key_exists('callback_url', $array) ? $array['callback_url'] : null
+                array_key_exists('callback_url', $array) ? $array['callback_url'] : null,
+                array_key_exists('encoding', $array) ? $array['encoding'] : null
             );
 
         }
@@ -81,10 +96,11 @@ class SMSMessage implements JsonSerializable
      * @param int|null    $sendTime
      * @param string      $class
      * @param string|null $callbackUrl
+     * @param string|null $encoding
      */
     public function __construct(string $message, string $senderName, array $recipients = [],
         ?string $userReference = null, array $tags = [], ?int $sendTime = null, string $class = self::CLASS_STANDARD,
-        ?string $callbackUrl = null
+        ?string $callbackUrl = null, ?string $encoding = null
     )
     {
 
@@ -95,6 +111,7 @@ class SMSMessage implements JsonSerializable
         $this->tags = $tags;
         $this->sendtime = $sendTime;
         $this->callbackUrl = $callbackUrl;
+        $this->setEncoding($encoding);
         $this->setClass($class);
 
     }
@@ -127,6 +144,21 @@ class SMSMessage implements JsonSerializable
         }
 
         $this->class = $class;
+
+    }
+
+    public function setEncoding(?string $encoding): void
+    {
+
+        if ($encoding !== self::ENCODING_UTF8
+            && $encoding !== self::ENCODING_UCS2
+            && $encoding !== null) {
+            throw new InvalidArgumentException(
+                'SMS encoding must be one of the provided constants or null. Received value: ' . $encoding
+            );
+        }
+
+        $this->encoding = $encoding;
 
     }
 
@@ -172,6 +204,11 @@ class SMSMessage implements JsonSerializable
     public function getCallbackUrl(): ?string
     {
         return $this->callbackUrl;
+    }
+
+    public function getEncoding(): ?string
+    {
+        return $this->encoding;
     }
 
     public function setSendTime(int $sendTime): void
@@ -255,6 +292,10 @@ class SMSMessage implements JsonSerializable
 
         if ($this->callbackUrl !== null) {
             $json['callback_url'] = $this->callbackUrl;
+        }
+
+        if ($this->encoding !== null) {
+            $json['encoding'] = $this->encoding;
         }
 
         return $json;

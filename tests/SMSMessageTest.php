@@ -21,7 +21,7 @@ class SMSMessageTest extends TestCase
                     new Recipient(4561232323, ['Joe', '22']),
                     new Recipient(4577364722, ['Mark', '23'])
                 ], 'reference text', ['%NAME%', '%AGE%'], 1585835858, SMSMessage::CLASS_SECRET,
-                    'https://example.com/callback'
+                    'https://example.com/callback', SMSMessage::ENCODING_UCS2
                 )
             )
         );
@@ -39,6 +39,7 @@ class SMSMessageTest extends TestCase
         $this->assertEquals(1585835858, $self->getSendtime());
 
         $this->assertEquals('https://example.com/callback', $self->getCallbackUrl());
+        $this->assertEquals('UCS2', $self->getEncoding());
 
     }
 
@@ -167,5 +168,33 @@ class SMSMessageTest extends TestCase
         $message->setCallbackUrl('https://example.com/callback');
 
         $this->assertEquals('https://example.com/callback', $message->getCallbackUrl());
+    }
+
+    public function testEncodingUCS2()
+    {
+
+        $message = new SMSMessage('test', 'sender');
+        $message->setEncoding(SMSMessage::ENCODING_UCS2);
+
+        $this->assertEquals('UCS2', $message->getEncoding());
+    }
+
+    public function testEncodingUTF8()
+    {
+
+        $message = new SMSMessage('test', 'sender');
+        $message->setEncoding(SMSMessage::ENCODING_UTF8);
+
+        $this->assertEquals('UTF8', $message->getEncoding());
+    }
+
+    public function testEncodingNull()
+    {
+
+        $message = new SMSMessage('test', 'sender');
+        $message->setEncoding(SMSMessage::ENCODING_UTF8);
+        $message->setEncoding(null);
+
+        $this->assertNull($message->getEncoding());
     }
 }
