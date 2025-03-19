@@ -62,7 +62,11 @@ $message1 = new SMSMessage(
     // The message class to use. Note that prices vary. The secret class
     // requires approval by GatewayAPI on your account before you can use
     // it, otherwise you will get an error.
-    SMSMessage::CLASS_STANDARD
+    SMSMessage::CLASS_STANDARD,
+    
+    // The encoding to use. UCS2 allows emojis but increases cost. Default
+    // or null is UTF8, which uses the GSM-7 character set.
+    SMSMessage::ENCODING_UTF8
 
 );
 
@@ -75,6 +79,7 @@ $message2->setClass(SMSMessage::CLASS_PREMIUM);
 $message2->setUserReference('customer1');
 $message2->setTags(['%NAME%', '%CODE%']);
 $message2->setCallbackUrl('https://example.com/callback');
+$message2->setEncoding(SMSMessage::ENCODING_UTF8);
 
 $message2->addRecipient(new Recipient(4587652222, ['Martha', '42442']));
 
