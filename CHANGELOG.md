@@ -1,7 +1,7 @@
 # Changelog
 
 ## 4.1.0 - 2025-03-19
-* Add support for `encoding` via `SMSMessage::ENCODING_UTF8` and `SMSMessage::Encoding_UCS2`. Default is `null`, which
+* Add support for `encoding` via `SMSMessage::ENCODING_UTF8` and `SMSMessage::ENCODING_UCS2`. Default is `null`, which
 uses `UTF8`. Note that `UTF8` means that the GSM-7 character set is used. `UCS2` adds the ability to use emojis, but
 increases the length (and hence cost) of your messages. See https://gatewayapi.com/docs/apis/rest/#basic-use.
 
