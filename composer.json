@@ -9,8 +9,7 @@
     "guzzlehttp/oauth-subscriber": "~0.8.1"
   },
   "require-dev": {
-    "phpunit/phpunit": "^9.0",
-    "php-coveralls/php-coveralls": "^v2.7.0"
+    "phpunit/phpunit": "^9.0"
   },
   "license": "mit",
   "authors": [
