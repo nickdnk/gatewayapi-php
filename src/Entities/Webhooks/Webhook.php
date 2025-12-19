@@ -97,10 +97,10 @@ abstract class Webhook
                         case 'HS256':
                             $algo = 'sha256';
                             break;
-                        case 'HS384';
+                        case 'HS384':
                             $algo = 'sha384';
                             break;
-                        case 'HS512';
+                        case 'HS512':
                             $algo = 'sha512';
                             break;
                         default:
