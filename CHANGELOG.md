@@ -2,7 +2,6 @@
 
 ## 4.2.0 - 2025-12-19
 * Support PHP 8.5 (upgrade your Guzzle dependency to `^7.10.0` - see [this issue](https://github.com/guzzle/guzzle/issues/3297)).
-* Remove Coveralls reporting as the dependency is unmaintained.
 
 ## 4.1.0 - 2025-03-19
 * Add support for `encoding` via `SMSMessage::ENCODING_UTF8` and `SMSMessage::ENCODING_UCS2`. Default is `null`, which

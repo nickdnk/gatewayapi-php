@@ -1,5 +1,6 @@
 [![Build Status](https://github.com/nickdnk/gatewayapi-php/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/nickdnk/gatewayapi-php/actions)
 [![Coverage Status](https://coveralls.io/repos/github/nickdnk/gatewayapi-php/badge.svg?branch=master)](https://coveralls.io/github/nickdnk/gatewayapi-php?branch=master)
+[![Downloads](https://img.shields.io/packagist/dt/nickdnk/gatewayapi-php)](https://packagist.org/packages/nickdnk/gatewayapi-php)
 # GatewayAPI PHP Library
 
 This library will allow you to integrate the **GatewayAPI.com** API in your project using modern PHP.
