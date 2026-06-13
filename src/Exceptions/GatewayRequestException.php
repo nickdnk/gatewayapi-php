@@ -1,38 +1,30 @@
 <?php
 
+declare(strict_types=1);
 
 namespace nickdnk\GatewayAPI\Exceptions;
 
-use nickdnk\GatewayAPI\Entities\Constructable;
+use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 
 class GatewayRequestException extends BaseException
 {
 
-    use Constructable;
-
-    private $gatewayAPIErrorCode, $response;
+    private ?ResponseInterface $response = null;
 
     /**
      * GatewayRequestException constructor.
      *
      * This exceptions is thrown in any situation where the request completes but was not successful or fails parsing.
-     *
-     * @param string|null $message
-     * @param string|null $gatewayAPIErrorCode
      */
-    public function __construct(?string $message, ?string $gatewayAPIErrorCode)
+    public function __construct(?string $message, private readonly ?string $gatewayAPIErrorCode)
     {
 
         parent::__construct($message);
-        $this->gatewayAPIErrorCode = $gatewayAPIErrorCode;
-        $this->response = null;
     }
 
     /**
      * The response is always available for requests that completed, so we override nullability here as well.
-     *
-     * @return ResponseInterface
      */
     public function getResponse(): ResponseInterface
     {
@@ -67,23 +59,52 @@ class GatewayRequestException extends BaseException
     }
 
     /**
-     * @param ResponseInterface $response
+     * Decodes a JSON error body into the appropriate exception. Unlike the entity
+     * Constructable trait, this hierarchy's factories are polymorphic (a 401 body yields
+     * an UnauthorizedException, etc.), so the return type cannot be `static`.
      *
-     * @return AlreadyCanceledOrSentException|GatewayRequestException|GatewayServerException|MessageException|UnauthorizedException|InsufficientFundsException
+     * @return GatewayRequestException|InsufficientFundsException
+     * @throws InvalidArgumentException If $throwExceptions is true and the body is not valid JSON.
      */
-    public static function constructFromResponse(ResponseInterface $response)
+    public static function constructFromJSON(string $json, bool $throwExceptions = true): self
     {
 
+        $array = json_decode($json, true);
+
+        if ($throwExceptions) {
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new InvalidArgumentException('Failed to parse string as valid JSON.');
+            }
+
+            if (!$array || !is_array($array)) {
+                throw new InvalidArgumentException('Invalid JSON passed to ' . static::class);
+            }
+
+        }
+
+        return static::constructFromArray($array ?? []);
+
+    }
+
+    /**
+     * @param ResponseInterface $response
+     *
+     * @return GatewayRequestException|GatewayServerException|MessageException|UnauthorizedException|InsufficientFundsException
+     */
+    public static function constructFromResponse(ResponseInterface $response): self
+    {
+
+        $body = (string)$response->getBody();
+
         if ($response->getStatusCode() === 401) {
-            $error = UnauthorizedException::constructFromJSON($response->getBody(), false);
-        } elseif ($response->getStatusCode() === 410) {
-            $error = new AlreadyCanceledOrSentException();
+            $error = UnauthorizedException::constructFromJSON($body, false);
         } elseif ($response->getStatusCode() === 422) {
-            $error = MessageException::constructFromJSON($response->getBody(), false);
+            $error = MessageException::constructFromJSON($body, false);
         } elseif ($response->getStatusCode() >= 500) {
-            $error = GatewayServerException::constructFromJSON($response->getBody(), false);
+            $error = GatewayServerException::constructFromJSON($body, false);
         } else {
-            $error = GatewayRequestException::constructFromJSON($response->getBody(), false);
+            $error = GatewayRequestException::constructFromJSON($body, false);
         }
 
         $error->setResponse($response);
@@ -93,6 +114,10 @@ class GatewayRequestException extends BaseException
     }
 
     /**
+     * Parses an error body. Handles both the legacy REST error shape
+     * (`{message, code}`, where `code` is a hex string) and the messaging API's
+     * validation error shape (`{detail: [{loc, msg, type}, ...]}`).
+     *
      * @param array $array
      *
      * @return GatewayRequestException|InsufficientFundsException
@@ -102,6 +127,23 @@ class GatewayRequestException extends BaseException
 
         if (array_key_exists('code', $array) && $array['code'] === '0x0216') {
             return InsufficientFundsException::constructFromArray($array);
+        }
+
+        // Messaging API (FastAPI/Pydantic) validation error.
+        if (array_key_exists('detail', $array) && is_array($array['detail'])) {
+
+            $messages = [];
+
+            foreach ($array['detail'] as $detail) {
+                if (is_array($detail) && isset($detail['msg'])) {
+                    $messages[] = is_array($detail['loc'] ?? null)
+                        ? implode('.', $detail['loc']) . ': ' . $detail['msg']
+                        : $detail['msg'];
+                }
+            }
+
+            return new static($messages ? implode('; ', $messages) : 'Validation error.', null);
+
         }
 
         return new static(

@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 namespace nickdnk\GatewayAPI\Entities;
 
@@ -14,23 +15,18 @@ trait Constructable
      * Takes an array (such as the output of json_decode($obj, true)) and must return an instance of self.
      * This method should throw an InvalidArgumentException if the array contains invalid data.
      *
-     * @param array $array
-     *
-     * @return static
      * @throws InvalidArgumentException
      */
-    abstract public static function constructFromArray(array $array);
+    abstract public static function constructFromArray(array $array): static;
 
     /**
      * Takes a JSON string and returns an instance of the Constructable using the abstract constructFromArray()
      * function which must be implemented by the subclass.
      *
-     * @param string $json
-     * @param bool   $throwExceptions
-     *
-     * @return static
+     * @throws InvalidArgumentException If $throwExceptions is true and the JSON is invalid, or if
+     *                                  constructFromArray() rejects the decoded data.
      */
-    public static function constructFromJSON(string $json, bool $throwExceptions = true)
+    public static function constructFromJSON(string $json, bool $throwExceptions = true): static
     {
 
         $array = json_decode($json, true);
@@ -52,17 +48,14 @@ trait Constructable
     }
 
     /**
-     * @param ResponseInterface $response
-     *
-     * @return static
      * @throws SuccessfulResponseParsingException
      */
-    public static function constructFromResponse(ResponseInterface $response)
+    public static function constructFromResponse(ResponseInterface $response): static
     {
 
         try {
 
-            return static::constructFromJSON($response->getBody());
+            return static::constructFromJSON((string)$response->getBody());
 
         } catch (InvalidArgumentException $exception) {
 

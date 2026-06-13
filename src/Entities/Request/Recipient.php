@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 namespace nickdnk\GatewayAPI\Entities\Request;
 
@@ -10,8 +11,6 @@ use nickdnk\GatewayAPI\Entities\Constructable;
 /**
  * Class Recipient
  *
- * @property int      $msisdn
- * @property string[] $tagvalues
  * @package nickdnk\GatewayAPI
  */
 class Recipient implements JsonSerializable
@@ -19,9 +18,25 @@ class Recipient implements JsonSerializable
 
     use Constructable;
 
-    private $msisdn, $tagvalues, $countryCode;
+    /**
+     * Recipient constructor.
+     *
+     * @param int           $msisdn
+     * @param string[]|null $tagvalues
+     * @param string|null   $countryCode
+     */
+    public function __construct(
+        private readonly int $msisdn,
+        private readonly ?array $tagvalues = [],
+        private readonly ?string $countryCode = null
+    )
+    {
+    }
 
-    public static function constructFromArray(array $array): Recipient
+    /**
+     * @throws InvalidArgumentException If required keys are missing or of the wrong type.
+     */
+    public static function constructFromArray(array $array): static
     {
 
         if (array_key_exists('msisdn', $array)
@@ -39,21 +54,6 @@ class Recipient implements JsonSerializable
 
     }
 
-    /**
-     * Recipient constructor.
-     *
-     * @param int           $phoneNumber
-     * @param string[]|null $tagValues
-     * @param string|null   $countryCode
-     */
-    public function __construct(int $phoneNumber, ?array $tagValues = [], ?string $countryCode = null)
-    {
-
-        $this->msisdn = $phoneNumber;
-        $this->tagvalues = $tagValues;
-        $this->countryCode = $countryCode;
-    }
-
     public function jsonSerialize(): array
     {
 
@@ -67,7 +67,6 @@ class Recipient implements JsonSerializable
      * Returns the phone number of the recipient as an integer, also known as the MSISDN.
      *
      * @link    https://en.wikipedia.org/wiki/MSISDN
-     * @return int
      * @example 4561273444
      */
     public function getMsisdn(): int
@@ -82,7 +81,7 @@ class Recipient implements JsonSerializable
     public function getTagValues(): array
     {
 
-        return $this->tagvalues;
+        return $this->tagvalues ?? [];
     }
 
 
@@ -90,7 +89,7 @@ class Recipient implements JsonSerializable
      * This field is not used by the GatewayAPI API. It's a convenience-method implemented to enable filtering
      * of Recipients based on their country at a later time than construction.
      *
-     * @return string
+     * @throws InvalidArgumentException If no country code was set on this Recipient.
      */
     public function getCountryCode(): string
     {

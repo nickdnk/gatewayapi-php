@@ -1,0 +1,92 @@
+[
+  {
+    "event_id": "09c829a2-a77b-422d-8562-2f88e784dfb5",
+    "timestamp": "2025-04-01T11:50:12.003029+00:00",
+    "event_type": "message.status.sms",
+    "event": {
+      "msg_id": "01JQRJWK259Y1YEECJZB50908V",
+      "recipient": 4512345678,
+      "reference": "<client provided reference>",
+      "status": "DELIVERED",
+      "status_at": "2025-04-01T11:49:12.005021+00:00",
+      "error": null
+    }
+  },
+  {
+    "event_id": "09c829a2-a77b-422d-8562-2f88e784dfb5",
+    "timestamp": "2025-04-01T11:50:12.003029+00:00",
+    "event_type": "message.status.rcs",
+    "event": {
+      "msg_id": "01JQRJWK259Y1YEECJZB50908V",
+      "recipient": 4512345678,
+      "reference": "<client provided reference>",
+      "status": "READ",
+      "status_at": "2025-04-01T11:49:12.005021+00:00"
+    }
+  },
+  {
+    "event_id": "09c829a2-a77b-422d-8562-2f88e784dfb5",
+    "timestamp": "2025-04-01T11:50:12.003029+00:00",
+    "event_type": "user-message.text.sms",
+    "event": {
+      "msg_id": "01K33QFGSHXXM0Q7HM7QS34PY6",
+      "sender": 4512345678,
+      "sent_at": "2025-04-01T11:49:12.005021+00:00",
+      "content": {
+        "message": "Hello World",
+        "encoding": "UCS2",
+        "header" : "050003CC0201"
+      }
+    }
+  },
+  {
+    "event_id": "09c829a2-a77b-422d-8562-2f88e784dfb5",
+    "timestamp": "2025-04-01T11:50:12.003029+00:00",
+    "event_type": "user-message.text.rcs",
+    "event": {
+      "msg_id": "01K33QFGSHXXM0Q7HM7QS34PY6",
+      "sender": 4512345678,
+      "content": "Hello world!",
+      "sent_at": "2025-04-01T11:49:12.005021+00:00"
+    }
+  },
+  {
+    "event_id": "09c829a2-a77b-422d-8562-2f88e784dfb5",
+    "timestamp": "2025-04-01T11:50:12.003029+00:00",
+    "event_type": "user-message.location.rcs",
+    "event": {
+      "msg_id": "01K33QFGSHXXM0Q7HM7QS34PY6",
+      "sender": 4512345678,
+      "content": {
+        "latitude": 55.6806024,
+        "longitude": 12.5790722
+      },
+      "sent_at": "2025-04-01T11:49:12.005021+00:00"
+    }
+  },
+  {
+    "event_id": "09c829a2-a77b-422d-8562-2f88e784dfb5",
+    "timestamp": "2025-04-01T11:50:12.003029+00:00",
+    "event_type": "user-message.file.rcs",
+    "event": {
+      "msg_id": "01K33QFGSHXXM0Q7HM7QS34PY6",
+      "sender": 4512345678,
+      "content": {
+        "category": null,
+        "thumbnail": {
+          "mime_type": "image/jpeg",
+          "size_bytes": 5246,
+          "name": null,
+          "uri": "https://rcs-<region>.googleapis.com/blob/<conversation-id>/<object-id>"
+        },
+        "payload": {
+          "mime_type": "image/jpeg",
+          "size_bytes": 24285,
+          "name": "9112194760767796361.jpg",
+          "uri": "https://rcs-<region>.googleapis.com/blob/<conversation-id>/<object-id>"
+        }
+      },
+      "sent_at": "2025-04-01T11:49:12.005021+00:00"
+    }
+  }
+]

@@ -1,0 +1,671 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "GatewayAPI Messaging API",
+    "description": "The Mobile Messaging API is the simple and future-proof interface for sending SMS and RCS messages to phone numbers.\n\nRead more in the [Messaging API overview](https://gatewayapi.com/docs/message/overview/).",
+    "version": "2026.06.03-1791"
+  },
+  "servers": [
+    {
+      "url": "https://messaging.gatewayapi.com"
+    },
+    {
+      "url": "https://messaging.gatewayapi.eu"
+    }
+  ],
+  "paths": {
+    "/mobile/single": {
+      "post": {
+        "tags": [
+          "Mobile Messaging"
+        ],
+        "summary": "Submit Single Mobile Message",
+        "description": "Submit a new mobile phone message.\n\nWill during processing be resolved to a specific message type depending on\nseveral parameters, such as account configuration, recipient network, and\nsender information.",
+        "operationId": "submit_single_mobile_message_mobile_single_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MobileMessageRequest"
+              },
+              "examples": {
+                "minimal": {
+                  "summary": "A minimal example",
+                  "value": {
+                    "sender": "ExampleSMS",
+                    "message": "Hello world!",
+                    "recipient": 4512345678
+                  }
+                },
+                "with reference": {
+                  "summary": "A message with reference",
+                  "value": {
+                    "sender": "ExampleSMS",
+                    "message": "Hello world!",
+                    "recipient": 4512345678,
+                    "reference": "<client provided reference>"
+                  }
+                },
+                "with expiration": {
+                  "summary": "A message with expire",
+                  "value": {
+                    "sender": "ExampleSMS",
+                    "message": "Hello world!",
+                    "recipient": 4512345678,
+                    "expiration": "P3DT4H33M17S"
+                  }
+                },
+                "with label": {
+                  "summary": "A message with label",
+                  "value": {
+                    "sender": "ExampleSMS",
+                    "message": "Hello world!",
+                    "recipient": 4512345678,
+                    "label": "Promotion"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Submit with reference",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MobileMessageResponse"
+                },
+                "example": {
+                  "msg_id": "01JNN696A9E0WS89FPYGT15NBX",
+                  "recipient": 4512345678,
+                  "reference": "<client provided reference>"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ]
+      }
+    },
+    "/mobile/multi": {
+      "post": {
+        "tags": [
+          "Mobile Messaging"
+        ],
+        "summary": "Submit Multiple Mobile Messages",
+        "description": "Submit a bunch of mobile phone messages at once.\n\nThe messages are unpacked and afterwards processed individually as if they\nwere submitted by using the single submit route.\n\nWill during processing be resolved to a specific message type depending on\nseveral parameters, such as account configuration, recipient network, and\nsender information.",
+        "operationId": "submit_multiple_mobile_messages_mobile_multi_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MultiMobileMessageRequest"
+              },
+              "examples": {
+                "minimal": {
+                  "summary": "A minimal example",
+                  "value": {
+                    "messages": [
+                      {
+                        "sender": "ExampleSMS",
+                        "message": "Hello world!",
+                        "recipient": 4512345678
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Submit with reference",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MultiMobileMessageResponse"
+                },
+                "example": {
+                  "msg_id": "01JNN696A9E0WS89FPYGT15NBX",
+                  "recipient": 4512345678,
+                  "reference": "<client provided reference>"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ]
+      }
+    }
+  },
+  "webhooks": {
+    "Messaging Webhook": {
+      "post": {
+        "summary": "Process Messaging Webhook Event",
+        "description": "Receive a webhook event generated by the system.\n\nThe responding server _must_ respond with a status code in the successful\nrange between `200` and `299`, in order to mark the event as delivered.\n\nAny other responses will we treated as a failure to deliver and will cause\nthe event to be retried again later.",
+        "operationId": "process_messaging_webhook_eventMessaging_Webhook_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhoneMessageWebhookEvent"
+              },
+              "examples": {
+                "minimal": {
+                  "summary": "A minimal example",
+                  "value": {
+                    "event_id": "09c829a2-a77b-422d-8562-2f88e784dfb5",
+                    "timestamp": "2025-04-01T11:50:12.003029+00:00",
+                    "event_type": "message.status.sms",
+                    "event": {
+                      "msg_id": "01JQRJWK259Y1YEECJZB50908V",
+                      "recipient": 4512345678,
+                      "reference": null,
+                      "status": "DELIVERED",
+                      "status_at": "2025-04-01T11:49:12.005021+00:00",
+                      "error": null
+                    }
+                  }
+                },
+                "full example": {
+                  "summary": "A message with reference and error",
+                  "value": {
+                    "event_id": "09c829a2-a77b-422d-8562-2f88e784dfb5",
+                    "timestamp": "2025-04-01T11:50:12.003029+00:00",
+                    "event_type": "message.status.sms",
+                    "event": {
+                      "msg_id": "01JQRJWK259Y1YEECJZB50908V",
+                      "recipient": 4512345678,
+                      "reference": "<client provided reference>",
+                      "status": "REJECTED",
+                      "status_at": "2025-04-01T11:49:12.005021+00:00",
+                      "error": {
+                        "hex_code": "0x1905",
+                        "details": "Unsupported sender"
+                      }
+                    }
+                  }
+                },
+                "rcs": {
+                  "summary": "A RCS example",
+                  "value": {
+                    "event_id": "a3243dcd-c2ec-4adf-a137-8a5948950a63",
+                    "timestamp": "2025-04-01T11:50:12.003029+00:00",
+                    "event_type": "message.status.sms",
+                    "event": {
+                      "msg_id": "01JQRJWK259Y1YEECJZB50908V",
+                      "recipient": 4512345678,
+                      "reference": "<client provided reference>",
+                      "status": "READ",
+                      "status_at": "2025-04-01T11:49:12.005021+00:00"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Error": {
+        "properties": {
+          "hex_code": {
+            "type": "string",
+            "title": "Hex Code"
+          },
+          "details": {
+            "type": "string",
+            "title": "Details"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hex_code",
+          "details"
+        ],
+        "title": "Error",
+        "description": "Representation of an error message if one is present."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "MobileMessageRequest": {
+        "properties": {
+          "sender": {
+            "type": "string",
+            "maxLength": 18,
+            "minLength": 3,
+            "title": "Sender",
+            "description": "Has to be at most either 11 characters alphanumeric or 15 numeric characters.\n\nIf using letters and numbers other than `[A-Za-z0-9]` there is a greater risk of replacement or rejection during processing by systems closer to the destination."
+          },
+          "recipient": {
+            "type": "integer",
+            "title": "Recipient",
+            "description": "MSISDN to recieve the message",
+            "gt": 1000,
+            "le": 999999999999999
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 39015,
+            "title": "Message",
+            "description": "Text message itself"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference",
+            "description": "Optional reference, often used for client generated ID"
+          },
+          "expiration": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "duration"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ],
+            "title": "Expiration",
+            "description": "Duration or point in time until the message expires.\nSeveral possible formats:\n- ISO-8601 duration.\n- `YYYY-MM-DD[T]HH:MM:SS[.ffffff][Z or [+ or -]HH[:]MM]`.\n- Unix timestamp in seconds.\n- Seconds offset, if the value is at most 432000.\n\nThe greatest possible expiration is 5 days.",
+            "default": "P5D"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "urgent"
+            ],
+            "title": "Priority",
+            "description": "Priority of the message. Urgent messages may be priced higher depending on account configuration",
+            "default": "normal"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label",
+            "description": "An optional label for the message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sender",
+          "recipient",
+          "message"
+        ],
+        "title": "MobileMessageRequest",
+        "description": "A transport agnostic mobile phone message.\n\nDepending on the recipient device, the network it belongs, the account\nconfiguration and other factors, these messages can be sent as various\nforms of messages for phones."
+      },
+      "MobileMessageResponse": {
+        "properties": {
+          "msg_id": {
+            "type": "string",
+            "title": "Msg Id",
+            "description": "System generated message ID"
+          },
+          "recipient": {
+            "type": "integer",
+            "title": "Recipient",
+            "description": "Client provided message recipient"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference",
+            "description": "Client provided message reference"
+          }
+        },
+        "type": "object",
+        "required": [
+          "msg_id",
+          "recipient",
+          "reference"
+        ],
+        "title": "MobileMessageResponse",
+        "description": "Mobile phone message submit response.\n\nContains some of the submitted fields along with the system generated ID\nfor matching in the integrating system."
+      },
+      "MultiMobileMessageRequest": {
+        "properties": {
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/MobileMessageRequest"
+            },
+            "type": "array",
+            "maxItems": 1000,
+            "minItems": 1,
+            "title": "Messages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "messages"
+        ],
+        "title": "MultiMobileMessageRequest",
+        "description": "Envelope for accepting multiple mobile phone messages at once."
+      },
+      "MultiMobileMessageResponse": {
+        "properties": {
+          "responses": {
+            "items": {
+              "$ref": "#/components/schemas/MobileMessageResponse"
+            },
+            "type": "array",
+            "title": "Responses"
+          }
+        },
+        "type": "object",
+        "required": [
+          "responses"
+        ],
+        "title": "MultiMobileMessageResponse",
+        "description": "Envelope response when submitting multiple mobile phone messages."
+      },
+      "PhoneMessageWebhookEvent": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          },
+          "event_type": {
+            "type": "string",
+            "enum": [
+              "message.status.sms",
+              "message.status.rcs"
+            ],
+            "title": "Event Type"
+          },
+          "event": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SMSStatus"
+              },
+              {
+                "$ref": "#/components/schemas/RCSStatus"
+              }
+            ],
+            "title": "Event"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_id",
+          "timestamp",
+          "event_type",
+          "event"
+        ],
+        "title": "PhoneMessageWebhookEvent",
+        "description": "A webhook event produced by the phone messaging API."
+      },
+      "RCSStatus": {
+        "properties": {
+          "msg_id": {
+            "type": "string",
+            "title": "Msg Id"
+          },
+          "recipient": {
+            "type": "integer",
+            "title": "Recipient"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DELIVERED",
+              "READ",
+              "ENROUTE",
+              "EXPIRED"
+            ],
+            "title": "Status"
+          },
+          "status_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Status At"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "msg_id",
+          "recipient",
+          "reference",
+          "status",
+          "status_at",
+          "error"
+        ],
+        "title": "RCSStatus",
+        "description": "The status of a message that got sent as an RCS message."
+      },
+      "SMSStatus": {
+        "properties": {
+          "msg_id": {
+            "type": "string",
+            "title": "Msg Id"
+          },
+          "recipient": {
+            "type": "integer",
+            "title": "Recipient"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ENROUTE",
+              "DELIVERED",
+              "EXPIRED",
+              "DELETED",
+              "UNDELIVERABLE",
+              "ACCEPTED",
+              "UNKNOWN",
+              "REJECTED"
+            ],
+            "title": "Status"
+          },
+          "status_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Status At"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Error"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "msg_id",
+          "recipient",
+          "reference",
+          "status",
+          "status_at",
+          "error"
+        ],
+        "title": "SMSStatus",
+        "description": "The status of a message that got sent as an SMS."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "Token": {
+        "type": "apiKey",
+        "description": "Set the `Authorization` header with a value of the following format: `Token {value}` where the `value` is the token from the GatewayAPI dashboard. The `Token` value defines the authorization scheme, which is required by the header format.\n\nAn example could be: `Token JxJOf8ddQSdtEjYwL_-FFUweRAdg_A3P7CxUluIMIAY`",
+        "in": "header",
+        "name": "Authorization"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Mobile Messaging",
+      "description": "Send transport agnostic messages to phones."
+    }
+  ]
+}

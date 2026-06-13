@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 namespace nickdnk\GatewayAPI\Entities\Webhooks;
 
@@ -9,26 +10,65 @@ use Psr\Http\Message\RequestInterface;
 /**
  * Class Webhook
  *
+ * Parses and verifies webhook callbacks from the messaging API.
+ *
+ * Verification: the messaging API signs the request by computing an HMAC-SHA256 over
+ * the raw request body using the webhook secret configured in the dashboard, hex-encodes
+ * it, and sends it in the `Signature` header as `v1=<hex>`.
+ * @link https://gatewayapi.com/docs/message/overview/#webhook-callbacks
+ *
  * @package nickdnk\GatewayAPI\Entities\Webhooks
  */
 abstract class Webhook
 {
 
-    private $messageId, $phoneNumber;
-
-    protected function __construct(int $messageId, int $phoneNumber)
+    protected function __construct(
+        private readonly string $eventId,
+        private readonly string $timestamp,
+        private readonly EventType $eventType,
+        private readonly string $messageId,
+        private readonly int $phoneNumber
+    )
     {
-
-        $this->messageId = $messageId;
-        $this->phoneNumber = $phoneNumber;
     }
 
-    public function getMessageId(): int
+    /**
+     * The unique ID of the webhook event (envelope `event_id`, a UUID).
+     */
+    public function getEventId(): string
+    {
+
+        return $this->eventId;
+    }
+
+    /**
+     * The ISO-8601 timestamp of the webhook envelope.
+     */
+    public function getEventTimestamp(): string
+    {
+
+        return $this->timestamp;
+    }
+
+    public function getEventType(): EventType
+    {
+
+        return $this->eventType;
+    }
+
+    /**
+     * The message ULID. Note: this is now a string, not an integer.
+     */
+    public function getMessageId(): string
     {
 
         return $this->messageId;
     }
 
+    /**
+     * The MSISDN involved in the event: the message recipient for delivery-status events,
+     * or the sender for inbound user-message events.
+     */
     public function getPhoneNumber(): int
     {
 
@@ -36,7 +76,7 @@ abstract class Webhook
     }
 
     /**
-     * @param array $data
+     * @param array $data The decoded webhook envelope.
      *
      * @return DeliveryStatusWebhook|IncomingMessageWebhook
      * @throws WebhookException
@@ -44,124 +84,69 @@ abstract class Webhook
     private static function constructWebhook(array $data): Webhook
     {
 
-        if (array_key_exists('id', $data)
-            && array_key_exists('msisdn', $data)) {
+        if (!array_key_exists('event_type', $data)
+            || !array_key_exists('event', $data)
+            || !is_string($data['event_type'])
+            || !is_array($data['event'])) {
 
-            if (array_key_exists('receiver', $data)
-                && array_key_exists('message', $data)
-                && array_key_exists('senttime', $data)
-                && array_key_exists('webhook_label', $data)) {
-
-                return IncomingMessageWebhook::constructFromArray($data);
-
-            }
-
-            if (array_key_exists('time', $data)
-                && array_key_exists('status', $data)) {
-
-                return DeliveryStatusWebhook::constructFromArray($data);
-
-            }
+            throw new WebhookException(
+                'Webhook missing required envelope keys. Got: ' . implode(',', array_keys($data))
+            );
 
         }
 
-        throw new WebhookException(
-            'Webhook missing required keys. Got: ' . implode(',', array_keys($data))
-        );
+        // Route by family prefix rather than the exact enum, so newer event sub-types
+        // within a known family still parse (their EventType resolves to UNKNOWN).
+        if (str_starts_with($data['event_type'], 'message.status.')) {
+            return DeliveryStatusWebhook::constructFromArray($data);
+        }
+
+        if (str_starts_with($data['event_type'], 'user-message.')) {
+            return IncomingMessageWebhook::constructFromArray($data);
+        }
+
+        throw new WebhookException('Unsupported webhook event_type: ' . $data['event_type']);
 
     }
 
     /**
-     * @param string $jwt
-     * @param string $secret
+     * Verifies the `Signature` header against the raw request body and returns the parsed
+     * payload. The signature is `v1=<hex-encoded HMAC-SHA256 of the raw body>`.
      *
-     * @return array
      * @throws WebhookException
      */
-    private static function parseAndValidateJWT(string $jwt, string $secret): array
+    private static function verifyAndDecode(string $rawBody, string $signature, string $secret): array
     {
 
-        $split = explode('.', $jwt);
-
-        if (count($split) === 3) {
-
-            $header = json_decode(base64_decode($split[0]));
-            $payload = json_decode(base64_decode($split[1]), true);
-
-            if ($header && $payload) {
-
-                if (property_exists($header, 'alg')) {
-
-                    switch ($header->alg) {
-
-                        case 'HS256':
-                            $algo = 'sha256';
-                            break;
-                        case 'HS384':
-                            $algo = 'sha384';
-                            break;
-                        case 'HS512':
-                            $algo = 'sha512';
-                            break;
-                        default:
-                            $algo = null;
-
-                    }
-
-                    if ($algo
-                        && rtrim(
-                               strtr(
-                                   base64_encode(hash_hmac($algo, $split[0] . '.' . $split[1], $secret, true)),
-                                   "+/",
-                                   "-_"
-                               ),
-                               "="
-                           ) === $split[2]) {
-
-                        return $payload;
-
-                    } else {
-
-                        throw new WebhookException('Webhook failed signature validation.');
-
-                    }
-
-                }
-
-            }
-
+        if (!$signature) {
+            throw new WebhookException('Missing webhook Signature header.');
         }
 
-        throw new WebhookException('Failed to parse webhook header as JWT.');
+        $expected = 'v1=' . hash_hmac('sha256', $rawBody, $secret);
+
+        if (!hash_equals($expected, $signature)) {
+            throw new WebhookException('Webhook failed signature validation.');
+        }
+
+        $payload = json_decode($rawBody, true);
+
+        if (!is_array($payload)) {
+            throw new WebhookException('Failed to parse webhook body as JSON.');
+        }
+
+        return $payload;
 
     }
 
     /**
-     * @param RequestInterface $request
+     * Constructs a webhook from a PSR-7 request object. This reads the raw body and the
+     * `Signature` header, verifies the HMAC signature and returns one of the possible
+     * webhook types.
      *
-     * @return string
-     * @throws WebhookException
-     */
-    private static function getJWTFromRequest(RequestInterface $request): string
-    {
-
-        $token = $request->getHeaderLine('X-Gwapi-Signature');
-
-        if (!$token) {
-            throw new WebhookException('Missing webhook JWT header.');
-        }
-
-        return $token;
-
-    }
-
-    /**
-     * Constructs a webhook from a PSR-7 request object. This automatically reads the JWT header, parses and validates
-     * it and returns one of the two possible webhook types. Note that the body of the request is entirely ignored,
-     * as the JWT header contains the full payload of the webhook.
-     *
-     * @param RequestInterface $request
-     * @param string           $secret
+     * IMPORTANT: the signature is computed over the RAW request body. Make sure the body
+     * stream has not been consumed or mutated by middleware before calling this. If your
+     * framework has already read the body, use {@see Webhook::constructFromBody()} with
+     * the original raw string instead.
      *
      * @return DeliveryStatusWebhook|IncomingMessageWebhook
      * @throws WebhookException
@@ -169,26 +154,31 @@ abstract class Webhook
     final public static function constructFromRequest(RequestInterface $request, string $secret): Webhook
     {
 
-        return self::constructFromJWT(
-            self::getJWTFromRequest($request),
+        $body = $request->getBody();
+
+        if ($body->isSeekable()) {
+            $body->rewind();
+        }
+
+        return self::constructFromBody(
+            (string)$body,
+            $request->getHeaderLine('Signature'),
             $secret
         );
+
     }
 
     /**
-     * Parses a webhook using a JWT directly. This is equivalent to using `constructFromRequest()` if you have
-     * correctly extracted the JWT from the 'X-Gwapi-Signature' HTTP header of the request.
-     *
-     * @param string $jwt
-     * @param string $secret
+     * Constructs a webhook from a raw request body and the `Signature` header value. Use
+     * this when you have already extracted the raw body from the request yourself.
      *
      * @return DeliveryStatusWebhook|IncomingMessageWebhook
      * @throws WebhookException
      */
-    final public static function constructFromJWT(string $jwt, string $secret): Webhook
+    final public static function constructFromBody(string $rawBody, string $signature, string $secret): Webhook
     {
 
-        return self::constructWebhook(self::parseAndValidateJWT($jwt, $secret));
+        return self::constructWebhook(self::verifyAndDecode($rawBody, $signature, $secret));
 
     }
 

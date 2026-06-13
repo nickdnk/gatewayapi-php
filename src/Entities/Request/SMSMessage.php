@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 namespace nickdnk\GatewayAPI\Entities\Request;
 
@@ -10,14 +11,22 @@ use nickdnk\GatewayAPI\Entities\Constructable;
 /**
  * Class SMSMessage
  *
+ * The internal (serialized) shape of this entity is preserved from previous versions
+ * so messages stored in a queue as JSON can still be re-hydrated. When sent, each
+ * message is translated to the messaging API's MobileMessageRequest format via
+ * {@see SMSMessage::toMobileMessageRequests()}.
+ *
+ * Note: the messaging API has no concept of scheduled send time, per-message tags,
+ * tag values, message class or encoding. These fields are still accepted and serialized
+ * for backwards compatibility but are NOT transmitted. Per-message callback URLs are no
+ * longer supported at all (webhooks are configured in the dashboard).
+ *
  * @property string      $class
  * @property string      $message
  * @property string      $sender
  * @property Recipient[] $recipients
  * @property string[]    $tags
- * @property int|null    $sendtime
  * @property string|null $userref
- * @property string|null $callback_url
  * @property string|null $encoding
  * @package nickdnk\GatewayAPI
  */
@@ -43,9 +52,20 @@ class SMSMessage implements JsonSerializable
      */
     const ENCODING_UCS2 = 'UCS2';
 
-    private $message, $sender, $recipients, $tags, $sendtime, $class, $userref, $callbackUrl, $encoding;
+    private string $message;
+    private string $sender;
+    /** @var Recipient[] */
+    private array $recipients;
+    /** @var string[] */
+    private array $tags;
+    private string $class;
+    private ?string $userref;
+    private ?string $encoding;
 
-    public static function constructFromArray(array $array): SMSMessage
+    /**
+     * @throws InvalidArgumentException If required keys are missing or of the wrong type.
+     */
+    public static function constructFromArray(array $array): static
     {
 
         if (array_key_exists('class', $array)
@@ -73,9 +93,7 @@ class SMSMessage implements JsonSerializable
                 $recipients,
                 array_key_exists('userref', $array) ? $array['userref'] : null,
                 $array['tags'],
-                array_key_exists('sendtime', $array) ? $array['sendtime'] : null,
                 $array['class'],
-                array_key_exists('callback_url', $array) ? $array['callback_url'] : null,
                 array_key_exists('encoding', $array) ? $array['encoding'] : null
             );
 
@@ -93,14 +111,14 @@ class SMSMessage implements JsonSerializable
      * @param Recipient[] $recipients
      * @param string|null $userReference
      * @param string[]    $tags
-     * @param int|null    $sendTime
      * @param string      $class
-     * @param string|null $callbackUrl
      * @param string|null $encoding
+     *
+     * @throws InvalidArgumentException If $class or $encoding is not a valid value.
      */
     public function __construct(string $message, string $senderName, array $recipients = [],
-        ?string $userReference = null, array $tags = [], ?int $sendTime = null, string $class = self::CLASS_STANDARD,
-        ?string $callbackUrl = null, ?string $encoding = null
+        ?string $userReference = null, array $tags = [], string $class = self::CLASS_STANDARD,
+        ?string $encoding = null
     )
     {
 
@@ -109,8 +127,6 @@ class SMSMessage implements JsonSerializable
         $this->recipients = $recipients;
         $this->userref = $userReference;
         $this->tags = $tags;
-        $this->sendtime = $sendTime;
-        $this->callbackUrl = $callbackUrl;
         $this->setEncoding($encoding);
         $this->setClass($class);
 
@@ -131,6 +147,8 @@ class SMSMessage implements JsonSerializable
      * by this class, i.e: `SMSMessage::CLASS_STANDARD`.
      *
      * @param string $class
+     *
+     * @throws InvalidArgumentException If $class is not one of the CLASS_* constants.
      */
     public function setClass(string $class): void
     {
@@ -147,6 +165,9 @@ class SMSMessage implements JsonSerializable
 
     }
 
+    /**
+     * @throws InvalidArgumentException If $encoding is not an ENCODING_* constant or null.
+     */
     public function setEncoding(?string $encoding): void
     {
 
@@ -189,21 +210,10 @@ class SMSMessage implements JsonSerializable
         return $this->tags;
     }
 
-    public function getSendtime(): ?int
-    {
-
-        return $this->sendtime;
-    }
-
     public function getUserReference(): ?string
     {
 
         return $this->userref;
-    }
-
-    public function getCallbackUrl(): ?string
-    {
-        return $this->callbackUrl;
     }
 
     public function getEncoding(): ?string
@@ -211,30 +221,10 @@ class SMSMessage implements JsonSerializable
         return $this->encoding;
     }
 
-    public function setSendTime(int $sendTime): void
-    {
-
-        $this->sendtime = $sendTime;
-    }
-
     public function setUserReference(string $userReference): void
     {
 
         $this->userref = $userReference;
-    }
-
-    public function setCallbackUrl(string $callbackUrl): void
-    {
-        $this->callbackUrl = $callbackUrl;
-    }
-
-    /**
-     * Sets the send-time of the message to null. Messages with no send time are sent immediately.
-     */
-    public function removeSendTime(): void
-    {
-
-        $this->sendtime = null;
     }
 
     /**
@@ -253,7 +243,7 @@ class SMSMessage implements JsonSerializable
      *
      * @param Recipient $recipient
      */
-    public function addRecipient(Recipient $recipient)
+    public function addRecipient(Recipient $recipient): void
     {
 
         $this->recipients[] = $recipient;
@@ -264,10 +254,43 @@ class SMSMessage implements JsonSerializable
      *
      * @param Recipient[] $recipients
      */
-    public function setRecipients(array $recipients)
+    public function setRecipients(array $recipients): void
     {
 
         $this->recipients = $recipients;
+
+    }
+
+    /**
+     * Translates this message into one or more MobileMessageRequest payloads for the
+     * messaging API. The messaging API accepts a single recipient per message, so a
+     * message with N recipients yields N payloads. The user reference is mapped to the
+     * messaging API's `reference` field.
+     *
+     * @return array[]
+     */
+    public function toMobileMessageRequests(): array
+    {
+
+        $requests = [];
+
+        foreach ($this->recipients as $recipient) {
+
+            $request = [
+                'sender'    => $this->sender,
+                'recipient' => $recipient->getMsisdn(),
+                'message'   => $this->message
+            ];
+
+            if ($this->userref !== null) {
+                $request['reference'] = $this->userref;
+            }
+
+            $requests[] = $request;
+
+        }
+
+        return $requests;
 
     }
 
@@ -284,14 +307,6 @@ class SMSMessage implements JsonSerializable
 
         if ($this->userref !== null) {
             $json['userref'] = $this->userref;
-        }
-
-        if ($this->sendtime !== null) {
-            $json['sendtime'] = $this->sendtime;
-        }
-
-        if ($this->callbackUrl !== null) {
-            $json['callback_url'] = $this->callbackUrl;
         }
 
         if ($this->encoding !== null) {

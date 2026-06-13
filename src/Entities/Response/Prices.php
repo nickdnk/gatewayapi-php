@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 namespace nickdnk\GatewayAPI\Entities\Response;
 
@@ -11,13 +12,11 @@ class Prices
 
     use Constructable;
 
-    private $standard, $premium;
-
-    public function __construct(array $standard, array $premium)
+    public function __construct(
+        private readonly array $standard,
+        private readonly array $premium
+    )
     {
-
-        $this->standard = $standard;
-        $this->premium = $premium;
     }
 
     public function getStandard(): array
@@ -32,7 +31,10 @@ class Prices
         return $this->premium;
     }
 
-    public static function constructFromArray(array $array): Prices
+    /**
+     * @throws InvalidArgumentException If required keys are missing.
+     */
+    public static function constructFromArray(array $array): static
     {
 
         if (isset($array['standard'])

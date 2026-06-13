@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 namespace nickdnk\GatewayAPI\Entities\Response;
 
@@ -16,21 +17,16 @@ class AccountBalance
 
     use Constructable;
 
-    private $credit, $currency, $id;
-
-    public function __construct(float $credit, string $currency, int $id)
+    public function __construct(
+        private readonly float $credit,
+        private readonly string $currency,
+        private readonly int $id
+    )
     {
-
-        $this->credit = $credit;
-        $this->currency = $currency;
-        $this->id = $id;
     }
 
     /**
-     *
      * The current balance of your account.
-     *
-     * @return float
      */
     public function getCredit(): float
     {
@@ -39,10 +35,7 @@ class AccountBalance
     }
 
     /**
-     *
      * The currency your account is settled in.
-     *
-     * @return string
      */
     public function getCurrency(): string
     {
@@ -51,10 +44,7 @@ class AccountBalance
     }
 
     /**
-     *
      * Returns your account ID at gatewayapi.com
-     *
-     * @return int
      */
     public function getId(): int
     {
@@ -63,10 +53,9 @@ class AccountBalance
     }
 
     /**
-     * @inheritDoc
-     * @return AccountBalance
+     * @throws InvalidArgumentException If required keys are missing or of the wrong type.
      */
-    public static function constructFromArray(array $array): AccountBalance
+    public static function constructFromArray(array $array): static
     {
 
         // Apparently credit is now a string, but used to be a float.

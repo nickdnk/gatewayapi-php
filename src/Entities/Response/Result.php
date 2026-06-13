@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 namespace nickdnk\GatewayAPI\Entities\Response;
 
@@ -9,6 +10,11 @@ use nickdnk\GatewayAPI\Entities\Constructable;
 /**
  * Class Result
  *
+ * Parses the response from the messaging API's `/mobile/multi` (and `/mobile/single`)
+ * endpoints. The messaging API no longer returns usage data (cost, currency, per-country
+ * counts), so those accessors are retained for backwards compatibility but return neutral
+ * values. Message IDs are now ULID strings rather than integers.
+ *
  * @package nickdnk\GatewayAPI
  */
 class Result
@@ -16,35 +22,25 @@ class Result
 
     use Constructable;
 
-    private $totalCost, $smsCount, $currency, $countries, $messageIds;
-
     /**
-     * Result constructor.
-     *
-     * @param float  $totalCost
-     * @param int    $smsCount
-     * @param string $currency
-     * @param array  $countries
-     * @param array  $messageIds
+     * @param float    $totalCost
+     * @param int      $smsCount
+     * @param string   $currency
+     * @param array    $countries
+     * @param string[] $messageIds
      */
-    public function __construct(float $totalCost, int $smsCount, string $currency, array $countries, array $messageIds)
+    public function __construct(
+        private readonly float $totalCost,
+        private readonly int $smsCount,
+        private readonly string $currency,
+        private readonly array $countries,
+        private readonly array $messageIds
+    )
     {
-
-        $this->totalCost = $totalCost;
-        $this->smsCount = $smsCount;
-        $this->currency = $currency;
-        $this->countries = $countries;
-        $this->messageIds = $messageIds;
     }
 
     /**
-     *
-     * Returns the total cost for the request as a decimal number.
-     * Rounded to a maximum of 5 decimal points using `PHP_ROUND_HALF_UP`.
-     * In practice, GatewayAPI only uses 4 decimal points, but their transaction
-     * log shows 5 digits.
-     *
-     * @return float
+     * @deprecated The messaging API no longer returns usage cost. Always returns 0.0.
      */
     public function getTotalCost(): float
     {
@@ -53,10 +49,7 @@ class Result
     }
 
     /**
-     *
-     * Returns the total number of SMS messages sent to all countries.
-     *
-     * @return int
+     * Returns the total number of messages accepted by the messaging API.
      */
     public function getTotalSMSCount(): int
     {
@@ -65,10 +58,7 @@ class Result
     }
 
     /**
-     *
-     * Returns the 3-digit currency of the totalCost value, such as `eur` for Euro.
-     *
-     * @return string
+     * @deprecated The messaging API no longer returns a currency. Always returns an empty string.
      */
     public function getCurrency(): string
     {
@@ -77,12 +67,7 @@ class Result
     }
 
     /**
-     *
-     * Returns an array of all the countries as key and the number of messages sent to each country as value.
-     * For instance, to get the number of messages sent to UK (if any), you could do `$result->getCountries()['UK']`.
-     * WARNING: An array key only exists if at least one message was sent to the corresponding country.
-     *
-     * @return array
+     * @deprecated The messaging API no longer returns per-country counts. Always returns an empty array.
      */
     public function getCountries(): array
     {
@@ -91,11 +76,10 @@ class Result
     }
 
     /**
+     * Returns the IDs of all messages accepted by the messaging API, in the order they
+     * were submitted. These are ULID strings (e.g. `01JNN696A9E0WS89FPYGT15NBX`).
      *
-     * Returns an array of the IDs of all messages delivered to GatewayAPI in the same order they were added
-     * to the request. These IDs can be passed directly into the `cancelScheduledMessages()`-method to cancel messages.
-     *
-     * @return int[]
+     * @return string[]
      */
     public function getMessageIds(): array
     {
@@ -103,39 +87,34 @@ class Result
         return $this->messageIds;
     }
 
-    public static function constructFromArray(array $array): Result
+    /**
+     * @throws InvalidArgumentException If the response shape is not recognised.
+     */
+    public static function constructFromArray(array $array): static
     {
 
-        if (array_key_exists('usage', $array)
-            && is_array($array['usage'])
-            && array_key_exists('ids', $array)
-            && is_array($array['ids'])
-            && array_key_exists('total_cost', $array['usage'])
-            && is_float($array['usage']['total_cost'])
-            && array_key_exists('currency', $array['usage'])
-            && is_string($array['usage']['currency'])
-            && array_key_exists('countries', $array['usage'])
-            && is_array($array['usage']['countries'])) {
+        // `/mobile/multi` returns an envelope of responses; `/mobile/single` returns one.
+        if (array_key_exists('responses', $array) && is_array($array['responses'])) {
+            $responses = $array['responses'];
+        } elseif (array_key_exists('msg_id', $array)) {
+            $responses = [$array];
+        } else {
+            throw new InvalidArgumentException('Array passed to ' . self::class . ' is missing required parameters.');
+        }
 
-            $smsCount = 0;
+        $messageIds = [];
 
-            foreach ($array['usage']['countries'] as $count) {
+        foreach ($responses as $response) {
 
-                $smsCount += $count;
-
+            if (!is_array($response) || !array_key_exists('msg_id', $response)) {
+                throw new InvalidArgumentException('Array passed to ' . self::class . ' contains an invalid response.');
             }
 
-            return new self(
-                round($array['usage']['total_cost'], 5),
-                $smsCount,
-                $array['usage']['currency'],
-                $array['usage']['countries'],
-                $array['ids']
-            );
+            $messageIds[] = $response['msg_id'];
 
         }
 
-        throw new InvalidArgumentException('Array passed to ' . self::class . ' is missing required parameters.');
+        return new self(0.0, count($messageIds), '', [], $messageIds);
 
     }
 }

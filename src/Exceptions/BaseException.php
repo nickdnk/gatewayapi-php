@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 namespace nickdnk\GatewayAPI\Exceptions;
 
@@ -15,8 +16,6 @@ abstract class BaseException extends Exception
 
     /**
      * BaseException constructor. All exceptions in this project inherit from this one.
-     *
-     * @param string|null $message
      */
     public function __construct(?string $message)
     {
