@@ -197,16 +197,19 @@ class GatewayAPIHandler
      *
      * @link https://gatewayapi.com/api/prices/list/sms/json
      *
+     * The optional `$handler` works exactly like the one passed to the constructor; see its documentation.
+     *
      * @throws ConnectionException
      * @throws GatewayRequestException
+     * @throws SuccessfulResponseParsingException
      */
-    public static function getPricesAsJSON(bool $euMode = false): Prices
+    public static function getPricesAsJSON(bool $euMode = false, ?callable $handler = null): Prices
     {
 
         try {
 
             return Prices::constructFromResponse(
-                (new Client())->get(
+                (new Client(['handler' => HandlerStack::create($handler)]))->get(
                     ($euMode ? self::DOMAIN_ROOT_EU : self::DOMAIN_ROOT_COM) . '/api/prices/list/sms/json',
                     [
                         RequestOptions::CONNECT_TIMEOUT => 15,

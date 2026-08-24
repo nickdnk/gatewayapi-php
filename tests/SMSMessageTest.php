@@ -197,4 +197,14 @@ class SMSMessageTest extends TestCase
 
         $this->assertNull($message->getEncoding());
     }
+
+    public function testInvalidEncoding()
+    {
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $message = new SMSMessage('Test', 'test');
+        $message->setEncoding('something invalid');
+
+    }
 }

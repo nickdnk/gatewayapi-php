@@ -13,6 +13,7 @@ use nickdnk\GatewayAPI\Entities\CancelResult;
 use nickdnk\GatewayAPI\Entities\Request\Recipient;
 use nickdnk\GatewayAPI\Entities\Request\SMSMessage;
 use nickdnk\GatewayAPI\Entities\Response\AccountBalance;
+use nickdnk\GatewayAPI\Entities\Response\Prices;
 use nickdnk\GatewayAPI\Exceptions\AlreadyCanceledOrSentException;
 use nickdnk\GatewayAPI\Exceptions\ConnectionException;
 use nickdnk\GatewayAPI\Exceptions\GatewayRequestException;
@@ -294,6 +295,83 @@ class GatewayAPIHandlerMockTest extends TestCase
     {
 
         $this->assertSame([], $this->handlerReturning([])->cancelScheduledMessages([]));
+
+    }
+
+    public function testGetPricesParsesPrices()
+    {
+
+        $mock = new MockHandler(
+            [
+                new Response(
+                    200, [], json_encode(['standard' => [['country' => 'DK']], 'premium' => [['country' => 'SE']]])
+                )
+            ]
+        );
+
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $prices = GatewayAPIHandler::getPricesAsJSON(false, $mock);
+
+        $this->assertEquals([['country' => 'DK']], $prices->getStandard());
+        $this->assertEquals([['country' => 'SE']], $prices->getPremium());
+
+        $this->assertEquals(
+            'https://gatewayapi.com/api/prices/list/sms/json', (string)$mock->getLastRequest()->getUri()
+        );
+
+    }
+
+    public function testGetPricesEuModeTargetsTheEuDomain()
+    {
+
+        $mock = new MockHandler([new Response(200, [], json_encode(['standard' => [], 'premium' => []]))]);
+
+        /** @noinspection PhpUnhandledExceptionInspection */
+        GatewayAPIHandler::getPricesAsJSON(true, $mock);
+
+        $this->assertEquals(
+            'https://gatewayapi.eu/api/prices/list/sms/json', (string)$mock->getLastRequest()->getUri()
+        );
+
+    }
+
+    public function testGetPricesThrowsGatewayRequestExceptionOnErrorResponse()
+    {
+
+        $mock = new MockHandler([new Response(400, [], $this->errorBody())]);
+
+        $this->expectException(GatewayRequestException::class);
+
+        GatewayAPIHandler::getPricesAsJSON(false, $mock);
+
+    }
+
+    public function testGetPricesThrowsConnectionExceptionOnTransferFailure()
+    {
+
+        $mock = new MockHandler(
+            [
+                new ConnectException(
+                    'Could not resolve host.',
+                    new Request('GET', 'https://gatewayapi.com/api/prices/list/sms/json')
+                )
+            ]
+        );
+
+        $this->expectException(ConnectionException::class);
+
+        GatewayAPIHandler::getPricesAsJSON(false, $mock);
+
+    }
+
+    public function testGetPricesThrowsParsingExceptionOnUnparsableResponse()
+    {
+
+        $mock = new MockHandler([new Response(200, [], 'this is not JSON')]);
+
+        $this->expectException(SuccessfulResponseParsingException::class);
+
+        GatewayAPIHandler::getPricesAsJSON(false, $mock);
 
     }
 }
