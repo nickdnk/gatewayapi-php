@@ -6,18 +6,13 @@ namespace nickdnk\GatewayAPI\Entities\Response;
 use InvalidArgumentException;
 use nickdnk\GatewayAPI\Entities\Constructable;
 
-class Prices
+final readonly class Prices
 {
 
     use Constructable;
 
-    private $standard, $premium;
-
-    public function __construct(array $standard, array $premium)
+    public function __construct(private array $standard, private array $premium)
     {
-
-        $this->standard = $standard;
-        $this->premium = $premium;
     }
 
     public function getStandard(): array

@@ -10,16 +10,16 @@ use nickdnk\GatewayAPI\Entities\Constructable;
 /**
  * Class Recipient
  *
- * @property int      $msisdn
- * @property string[] $tagvalues
  * @package nickdnk\GatewayAPI
  */
-class Recipient implements JsonSerializable
+final readonly class Recipient implements JsonSerializable
 {
 
     use Constructable;
 
-    private $msisdn, $tagvalues, $countryCode;
+    private int $msisdn;
+    private array $tagvalues;
+    private ?string $countryCode;
 
     public static function constructFromArray(array $array): Recipient
     {
@@ -40,13 +40,9 @@ class Recipient implements JsonSerializable
     }
 
     /**
-     * Recipient constructor.
-     *
-     * @param int           $phoneNumber
-     * @param string[]|null $tagValues
-     * @param string|null   $countryCode
+     * @param string[] $tagValues
      */
-    public function __construct(int $phoneNumber, ?array $tagValues = [], ?string $countryCode = null)
+    public function __construct(int $phoneNumber, array $tagValues = [], ?string $countryCode = null)
     {
 
         $this->msisdn = $phoneNumber;
@@ -67,7 +63,6 @@ class Recipient implements JsonSerializable
      * Returns the phone number of the recipient as an integer, also known as the MSISDN.
      *
      * @link    https://en.wikipedia.org/wiki/MSISDN
-     * @return int
      * @example 4561273444
      */
     public function getMsisdn(): int
@@ -89,8 +84,6 @@ class Recipient implements JsonSerializable
     /**
      * This field is not used by the GatewayAPI API. It's a convenience-method implemented to enable filtering
      * of Recipients based on their country at a later time than construction.
-     *
-     * @return string
      */
     public function getCountryCode(): string
     {

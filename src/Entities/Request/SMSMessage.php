@@ -10,15 +10,6 @@ use nickdnk\GatewayAPI\Entities\Constructable;
 /**
  * Class SMSMessage
  *
- * @property string      $class
- * @property string      $message
- * @property string      $sender
- * @property Recipient[] $recipients
- * @property string[]    $tags
- * @property int|null    $sendtime
- * @property string|null $userref
- * @property string|null $callback_url
- * @property string|null $encoding
  * @package nickdnk\GatewayAPI
  */
 class SMSMessage implements JsonSerializable
@@ -43,7 +34,15 @@ class SMSMessage implements JsonSerializable
      */
     const ENCODING_UCS2 = 'UCS2';
 
-    private $message, $sender, $recipients, $tags, $sendtime, $class, $userref, $callbackUrl, $encoding;
+    private string $message;
+    private string $sender;
+    private array $recipients;
+    private array $tags;
+    private ?int $sendtime;
+    private string $class;
+    private ?string $userref;
+    private ?string $callbackUrl;
+    private ?string $encoding;
 
     public static function constructFromArray(array $array): SMSMessage
     {
@@ -86,17 +85,8 @@ class SMSMessage implements JsonSerializable
     }
 
     /**
-     * SMSMessage constructor.
-     *
-     * @param string      $message
-     * @param string      $senderName
      * @param Recipient[] $recipients
-     * @param string|null $userReference
      * @param string[]    $tags
-     * @param int|null    $sendTime
-     * @param string      $class
-     * @param string|null $callbackUrl
-     * @param string|null $encoding
      */
     public function __construct(string $message, string $senderName, array $recipients = [],
         ?string $userReference = null, array $tags = [], ?int $sendTime = null, string $class = self::CLASS_STANDARD,
@@ -129,8 +119,6 @@ class SMSMessage implements JsonSerializable
     /**
      * Must be one of the available constants; `standard`, `premium` or `secret`. Use the built-in constants provided
      * by this class, i.e: `SMSMessage::CLASS_STANDARD`.
-     *
-     * @param string $class
      */
     public function setClass(string $class): void
     {
@@ -250,10 +238,8 @@ class SMSMessage implements JsonSerializable
 
     /**
      * Adds a single recipient to the message.
-     *
-     * @param Recipient $recipient
      */
-    public function addRecipient(Recipient $recipient)
+    public function addRecipient(Recipient $recipient): void
     {
 
         $this->recipients[] = $recipient;
@@ -264,7 +250,7 @@ class SMSMessage implements JsonSerializable
      *
      * @param Recipient[] $recipients
      */
-    public function setRecipients(array $recipients)
+    public function setRecipients(array $recipients): void
     {
 
         $this->recipients = $recipients;

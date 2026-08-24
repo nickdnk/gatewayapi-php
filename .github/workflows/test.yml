@@ -5,7 +5,9 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        php: [ '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
+        php: [ '8.2', '8.3', '8.4', '8.5' ]
+        guzzle: [ '7', '8' ]
+    name: PHP ${{matrix.php}} / Guzzle ${{matrix.guzzle}}
     steps:
       - uses: actions/checkout@v2
       - run: mkdir -p build/logs
@@ -13,9 +15,12 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{matrix.php}}
-      - run: composer install
-      - run: php vendor/bin/phpunit
+          coverage: pcov
+      - run: composer update --no-interaction --with "guzzlehttp/guzzle:^${{matrix.guzzle}}.0"
+      - run: php vendor/bin/phpunit --coverage-clover=build/logs/clover.xml
       - name: Upload coverage results to Coveralls
+        # Coverage is identical on both Guzzle majors, so upload it once per PHP version.
+        if: matrix.guzzle == '8'
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

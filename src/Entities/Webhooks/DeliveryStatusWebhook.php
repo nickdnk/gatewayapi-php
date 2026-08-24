@@ -11,7 +11,7 @@ use nickdnk\GatewayAPI\Exceptions\WebhookException;
  *
  * @package nickdnk\GatewayAPI\Entities\Webhooks
  */
-class DeliveryStatusWebhook extends Webhook
+final readonly class DeliveryStatusWebhook extends Webhook
 {
 
     use Constructable;
@@ -42,91 +42,57 @@ class DeliveryStatusWebhook extends Webhook
     const CHARGE_STATUS_REFUNDED    = 'REFUNDED';
     const CHARGE_STATUS_REFUND_FAIL = 'REFUND_FAIL';
 
-    private $timestamp, $status, $userReference, $chargeStatus, $countryCode, $countryPrefix, $errorDescription, $errorCode;
-
-    protected function __construct(int $messageId, int $phoneNumber, int $timestamp, string $status,
-        ?string $userReference, ?string $chargeStatus, ?string $countryCode, ?int $countryPrefix,
-        ?string $errorDescription, ?string $errorCode
-    )
-    {
+    protected function __construct(int $messageId, int $phoneNumber, private int $timestamp,
+        private string $status, private ?string $userReference, private ?string $chargeStatus,
+        private ?string $countryCode, private ?int $countryPrefix, private ?string $errorDescription,
+        private ?string $errorCode
+    ) {
 
         parent::__construct($messageId, $phoneNumber);
-        $this->timestamp = $timestamp;
-        $this->status = $status;
-        $this->userReference = $userReference;
-        $this->chargeStatus = $chargeStatus;
-        $this->countryCode = $countryCode;
-        $this->countryPrefix = $countryPrefix;
-        $this->errorDescription = $errorDescription;
-        $this->errorCode = $errorCode;
     }
 
-    /**
-     * @return int
-     */
     public function getTimestamp(): int
     {
 
         return $this->timestamp;
     }
 
-    /**
-     * @return string
-     */
     public function getStatus(): string
     {
 
         return $this->status;
     }
 
-    /**
-     * @return string|null
-     */
     public function getUserReference(): ?string
     {
 
         return $this->userReference;
     }
 
-    /**
-     * @return string|null
-     */
     public function getChargeStatus(): ?string
     {
 
         return $this->chargeStatus;
     }
 
-    /**
-     * @return string|null
-     */
     public function getCountryCode(): ?string
     {
 
         return $this->countryCode;
     }
 
-    /**
-     * @return int|null
-     */
     public function getCountryPrefix(): ?int
     {
 
         return $this->countryPrefix;
     }
 
-    /**
-     * @return string|null
-     */
     public function getErrorDescription(): ?string
     {
 
         return $this->errorDescription;
     }
 
-    /**
-     * @return string|null
-     */
     public function getErrorCode(): ?string
     {
 
@@ -136,7 +102,6 @@ class DeliveryStatusWebhook extends Webhook
 
     /**
      * @inheritDoc
-     * @return DeliveryStatusWebhook
      * @throws WebhookException
      */
     public static function constructFromArray(array $array): DeliveryStatusWebhook

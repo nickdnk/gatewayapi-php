@@ -1,20 +1,60 @@
 # Changelog
 
+## 5.0.0 - 2026-08-24
+
+* Require **at least PHP 8.2**. Stay on `4.x` if you need PHP 7.
+* These are now `readonly` classes:
+    - `AccountBalance`
+    - `DeliveryStatusWebhook`
+    - `IncomingMessageWebhook`
+    - `Prices`
+    - `Recipient`
+    - `Result`
+    - `Webhook`
+
+  None of them had setters, so this only breaks code that wrote to their properties directly. `SMSMessage` keeps its
+  setters and is unchanged.
+
+* These are now `final` classes:
+    - `AccountBalance`
+    - `CancelResult`
+    - `DeliveryStatusWebhook`
+    - `IncomingMessageWebhook`
+    - `Prices`
+    - `Recipient`
+    - `Result`
+
+  `SMSMessage` and the abstract `Webhook` are deliberately not final. Subclassing any of the others never worked in any
+  useful way, because every one builds instances with `new self()`, so the library always handed you a base instance
+  rather than your subclass. Use composition, or construct them through their public constructors and
+  `constructFromArray()` factories.
+
+* Added support for Guzzle 8.
+* Added native property types throughout.
+* `Recipient::__construct()` no longer accepts `null` for `$tagValues`. This was never intended to accept `null`.
+* `GatewayAPIHandler::__construct()` takes an optional Guzzle handler as its fourth argument, so you can control how
+  requests are sent: retries, logging, a proxy, or a `MockHandler` to test against canned responses. See the readme.
+* Bumped `phpunit/phpunit` to `^11.0`.
+
 ## 4.2.0 - 2025-12-19
+
 * Support PHP 8.5 (upgrade your Guzzle dependency to `^7.10.0` - see [this issue](https://github.com/guzzle/guzzle/issues/3297)).
 
 ## 4.1.0 - 2025-03-19
+
 * Add support for `encoding` via `SMSMessage::ENCODING_UTF8` and `SMSMessage::ENCODING_UCS2`. Default is `null`, which
-uses `UTF8`. Note that `UTF8` means that the GSM-7 character set is used. `UCS2` adds the ability to use emojis, but
-increases the length (and hence cost) of your messages. See https://gatewayapi.com/docs/apis/rest/#basic-use.
+  uses `UTF8`. Note that `UTF8` means that the GSM-7 character set is used. `UCS2` adds the ability to use emojis, but
+  increases the length (and hence cost) of your messages. See https://gatewayapi.com/docs/apis/rest/#basic-use.
 
 ## 4.0.0 - 2025-02-05
+
 * Require at least PHP 7.3.
 * Test against PHP 8.4.
 * Dropped support for Guzzle 6 (now requires Guzzle 7).
 * Updated requirements for `guzzlehttp/oauth-subscriber` to minimum `0.8.1` to address [CVE-2025-21617](https://nvd.nist.gov/vuln/detail/CVE-2025-21617).
 
 ## 3.3.1 - 2024-09-02
+
 * Test against PHP 8.3.
 * Round the total cost of messages to 5 decimal points.
 

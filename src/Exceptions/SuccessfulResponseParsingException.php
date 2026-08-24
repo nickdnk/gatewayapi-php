@@ -17,9 +17,6 @@ class SuccessfulResponseParsingException extends GatewayRequestException
      * If you have a system in place that automatically retries failed requests you should definitely catch this error
      * and stop retrying, as you could risk going into an infinite loop that keeps sending out messages until you run
      * out of credit or something similarly terrible happens.
-     *
-     * @param string            $message
-     * @param ResponseInterface $response
      */
 
     public function __construct(string $message, ResponseInterface $response)

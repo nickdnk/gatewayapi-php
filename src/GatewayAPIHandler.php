@@ -26,6 +26,7 @@ use nickdnk\GatewayAPI\Exceptions\GatewayServerException;
 use nickdnk\GatewayAPI\Exceptions\SuccessfulResponseParsingException;
 use nickdnk\GatewayAPI\Exceptions\UnauthorizedException;
 use Psr\Http\Message\ResponseInterface;
+use Throwable;
 
 /**
  * Class GatewayAPIHandler
@@ -38,20 +39,21 @@ class GatewayAPIHandler
     private const DOMAIN_ROOT_COM = 'https://gatewayapi.com';
     private const DOMAIN_ROOT_EU  = 'https://gatewayapi.eu';
 
-    private $client;
+    private Client $client;
 
     /**
      * Obtain a key and secret from the website. This is a prerequisite for sending SMS.
      * Pass `true` to `$euMode` to use the EU-only setup.
      *
-     * @param string $key
-     * @param string $secret
-     * @param bool $euMode
+     * The optional `$handler` is a Guzzle handler, which this library wraps in its own stack before adding the
+     * OAuth signing middleware. Pass one to control how requests are actually sent: retries with backoff, request
+     * logging, a proxy, custom cURL options, or a `GuzzleHttp\Handler\MockHandler` to run your integration against
+     * canned responses instead of the network. Leave it `null` for Guzzle's default handler.
      */
-    public function __construct(string $key, string $secret, bool $euMode = false)
+    public function __construct(string $key, string $secret, bool $euMode = false, ?callable $handler = null)
     {
 
-        $stack = HandlerStack::create();
+        $stack = HandlerStack::create($handler);
         $stack->push(
             new Oauth1(
                 [
@@ -110,7 +112,7 @@ class GatewayAPIHandler
         (new Pool(
             $this->client, $requests, [
                              'concurrency' => 3,
-                             'rejected'    => function (TransferException $exception, $index) use (&$results) {
+                             'rejected'    => function (Throwable $exception, $index) use (&$results) {
 
                                  $results[$index]->setStatus(CancelResult::STATUS_FAILED);
 
@@ -153,7 +155,8 @@ class GatewayAPIHandler
      *
      * @param SMSMessage[]|array $messages
      *
-     * @return Result
+     * @throws InvalidArgumentException if the messages cannot be encoded as JSON, such as when the message text
+     *                                 contains invalid UTF-8. Do not retry these; the input has to change.
      * @throws SuccessfulResponseParsingException
      * @throws GatewayRequestException
      * @throws GatewayServerException
@@ -173,7 +176,6 @@ class GatewayAPIHandler
      * Returns the account as defined by credentials.
      * This shows the currency, account number and current balance of the account.
      *
-     * @return AccountBalance
      * @throws ConnectionException
      * @throws GatewayRequestException
      * @throws GatewayServerException
@@ -195,7 +197,6 @@ class GatewayAPIHandler
      *
      * @link https://gatewayapi.com/api/prices/list/sms/json
      *
-     * @return Prices
      * @throws ConnectionException
      * @throws GatewayRequestException
      */
@@ -230,11 +231,6 @@ class GatewayAPIHandler
 
 
     /**
-     * @param string     $method
-     * @param string     $endPoint
-     * @param array|null $body
-     *
-     * @return ResponseInterface
      * @throws AlreadyCanceledOrSentException
      * @throws ConnectionException
      * @throws GatewayRequestException

@@ -11,28 +11,19 @@ class GatewayRequestException extends BaseException
 
     use Constructable;
 
-    private $gatewayAPIErrorCode, $response;
+    private ?ResponseInterface $response = null;
 
     /**
-     * GatewayRequestException constructor.
-     *
      * This exceptions is thrown in any situation where the request completes but was not successful or fails parsing.
-     *
-     * @param string|null $message
-     * @param string|null $gatewayAPIErrorCode
      */
-    public function __construct(?string $message, ?string $gatewayAPIErrorCode)
+    public function __construct(?string $message, private readonly ?string $gatewayAPIErrorCode)
     {
 
         parent::__construct($message);
-        $this->gatewayAPIErrorCode = $gatewayAPIErrorCode;
-        $this->response = null;
     }
 
     /**
      * The response is always available for requests that completed, so we override nullability here as well.
-     *
-     * @return ResponseInterface
      */
     public function getResponse(): ResponseInterface
     {
@@ -40,9 +31,6 @@ class GatewayRequestException extends BaseException
         return $this->response;
     }
 
-    /**
-     * @param ResponseInterface $response
-     */
     public function setResponse(ResponseInterface $response): void
     {
 
@@ -57,8 +45,6 @@ class GatewayRequestException extends BaseException
      *
      * The error code is null if GatewayAPI returns an invalid response that we cannot parse using their normal error
      * response structure. You should always check if the error code is null before using it.
-     *
-     * @return string|null string
      */
     public function getGatewayAPIErrorCode(): ?string
     {
@@ -67,8 +53,6 @@ class GatewayRequestException extends BaseException
     }
 
     /**
-     * @param ResponseInterface $response
-     *
      * @return AlreadyCanceledOrSentException|GatewayRequestException|GatewayServerException|MessageException|UnauthorizedException|InsufficientFundsException
      */
     public static function constructFromResponse(ResponseInterface $response)
@@ -93,8 +77,6 @@ class GatewayRequestException extends BaseException
     }
 
     /**
-     * @param array $array
-     *
      * @return GatewayRequestException|InsufficientFundsException
      */
     public static function constructFromArray(array $array)

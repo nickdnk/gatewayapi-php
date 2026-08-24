@@ -11,30 +11,18 @@ use nickdnk\GatewayAPI\Entities\Constructable;
  *
  * @package nickdnk\GatewayAPI
  */
-class Result
+final readonly class Result
 {
 
     use Constructable;
 
-    private $totalCost, $smsCount, $currency, $countries, $messageIds;
-
     /**
-     * Result constructor.
-     *
-     * @param float  $totalCost
-     * @param int    $smsCount
-     * @param string $currency
-     * @param array  $countries
-     * @param array  $messageIds
+     * @param array<string, int> $countries
+     * @param int[]              $messageIds
      */
-    public function __construct(float $totalCost, int $smsCount, string $currency, array $countries, array $messageIds)
-    {
-
-        $this->totalCost = $totalCost;
-        $this->smsCount = $smsCount;
-        $this->currency = $currency;
-        $this->countries = $countries;
-        $this->messageIds = $messageIds;
+    public function __construct(private float $totalCost, private int $smsCount, private string $currency,
+        private array $countries, private array $messageIds
+    ) {
     }
 
     /**
@@ -43,8 +31,6 @@ class Result
      * Rounded to a maximum of 5 decimal points using `PHP_ROUND_HALF_UP`.
      * In practice, GatewayAPI only uses 4 decimal points, but their transaction
      * log shows 5 digits.
-     *
-     * @return float
      */
     public function getTotalCost(): float
     {
@@ -55,8 +41,6 @@ class Result
     /**
      *
      * Returns the total number of SMS messages sent to all countries.
-     *
-     * @return int
      */
     public function getTotalSMSCount(): int
     {
@@ -67,8 +51,6 @@ class Result
     /**
      *
      * Returns the 3-digit currency of the totalCost value, such as `eur` for Euro.
-     *
-     * @return string
      */
     public function getCurrency(): string
     {
@@ -82,7 +64,7 @@ class Result
      * For instance, to get the number of messages sent to UK (if any), you could do `$result->getCountries()['UK']`.
      * WARNING: An array key only exists if at least one message was sent to the corresponding country.
      *
-     * @return array
+     * @return array<string, int>
      */
     public function getCountries(): array
     {

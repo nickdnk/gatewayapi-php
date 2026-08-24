@@ -14,9 +14,7 @@ abstract class BaseException extends Exception
 {
 
     /**
-     * BaseException constructor. All exceptions in this project inherit from this one.
-     *
-     * @param string|null $message
+     * All exceptions in this project inherit from this one.
      */
     public function __construct(?string $message)
     {

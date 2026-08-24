@@ -16,7 +16,9 @@ Once you have that you need to generate an API key/secret pair under **API** -> 
 
 To include this in your project, install it using Composer.
 
-This library requires PHP >= 7.3 and is tested against PHP 8.
+This library requires PHP >= 8.2 and is tested against PHP 8.2 through 8.5.
+
+It works with both Guzzle 7 and Guzzle 8, and is tested against both.
 
 `composer require nickdnk/gatewayapi-php`
 
@@ -402,6 +404,32 @@ If you want to test the parts that interact with the API you must
 provide credentials in `GatewayAPIHandlerTest.php` and run the above
 command. Note that this sends out live SMS and will cost you 1 SMS in
 credits per execution.
+
+### Custom Guzzle handler
+
+The constructor takes an optional Guzzle handler as its fourth argument. It is
+the general extension point for how requests get sent, so you can add retries,
+logging or a proxy through it. It also lets you exercise your own code against
+canned responses without touching the network or spending credits:
+
+```php
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\Psr7\Response;
+use nickdnk\GatewayAPI\GatewayAPIHandler;
+
+$handler = new GatewayAPIHandler(
+    'key', 'secret', false, new MockHandler(
+        [
+            new Response(422, [], '{"message": "Invalid recipient.", "code": "0x0308"}')
+        ]
+    )
+);
+
+// Throws MessageException.
+$handler->deliverMessages([$message]);
+```
+
+See `GatewayAPIHandlerMockTest.php` for more examples.
 
 ### Contact
 

@@ -14,8 +14,6 @@ trait Constructable
      * Takes an array (such as the output of json_decode($obj, true)) and must return an instance of self.
      * This method should throw an InvalidArgumentException if the array contains invalid data.
      *
-     * @param array $array
-     *
      * @return static
      * @throws InvalidArgumentException
      */
@@ -24,9 +22,6 @@ trait Constructable
     /**
      * Takes a JSON string and returns an instance of the Constructable using the abstract constructFromArray()
      * function which must be implemented by the subclass.
-     *
-     * @param string $json
-     * @param bool   $throwExceptions
      *
      * @return static
      */
@@ -52,8 +47,6 @@ trait Constructable
     }
 
     /**
-     * @param ResponseInterface $response
-     *
      * @return static
      * @throws SuccessfulResponseParsingException
      */

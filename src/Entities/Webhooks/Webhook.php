@@ -11,16 +11,11 @@ use Psr\Http\Message\RequestInterface;
  *
  * @package nickdnk\GatewayAPI\Entities\Webhooks
  */
-abstract class Webhook
+readonly abstract class Webhook
 {
 
-    private $messageId, $phoneNumber;
-
-    protected function __construct(int $messageId, int $phoneNumber)
+    protected function __construct(private int $messageId, private int $phoneNumber)
     {
-
-        $this->messageId = $messageId;
-        $this->phoneNumber = $phoneNumber;
     }
 
     public function getMessageId(): int
@@ -36,12 +31,9 @@ abstract class Webhook
     }
 
     /**
-     * @param array $data
-     *
-     * @return DeliveryStatusWebhook|IncomingMessageWebhook
      * @throws WebhookException
      */
-    private static function constructWebhook(array $data): Webhook
+    private static function constructWebhook(array $data): DeliveryStatusWebhook|IncomingMessageWebhook
     {
 
         if (array_key_exists('id', $data)
@@ -72,10 +64,7 @@ abstract class Webhook
     }
 
     /**
-     * @param string $jwt
-     * @param string $secret
-     *
-     * @return array
+     * @return array<string, mixed> the decoded JWT payload
      * @throws WebhookException
      */
     private static function parseAndValidateJWT(string $jwt, string $secret): array
@@ -92,21 +81,12 @@ abstract class Webhook
 
                 if (property_exists($header, 'alg')) {
 
-                    switch ($header->alg) {
-
-                        case 'HS256':
-                            $algo = 'sha256';
-                            break;
-                        case 'HS384':
-                            $algo = 'sha384';
-                            break;
-                        case 'HS512':
-                            $algo = 'sha512';
-                            break;
-                        default:
-                            $algo = null;
-
-                    }
+                    $algo = match ($header->alg) {
+                        'HS256' => 'sha256',
+                        'HS384' => 'sha384',
+                        'HS512' => 'sha512',
+                        default => null,
+                    };
 
                     if ($algo
                         && rtrim(
@@ -137,9 +117,6 @@ abstract class Webhook
     }
 
     /**
-     * @param RequestInterface $request
-     *
-     * @return string
      * @throws WebhookException
      */
     private static function getJWTFromRequest(RequestInterface $request): string
@@ -160,13 +137,9 @@ abstract class Webhook
      * it and returns one of the two possible webhook types. Note that the body of the request is entirely ignored,
      * as the JWT header contains the full payload of the webhook.
      *
-     * @param RequestInterface $request
-     * @param string           $secret
-     *
-     * @return DeliveryStatusWebhook|IncomingMessageWebhook
      * @throws WebhookException
      */
-    final public static function constructFromRequest(RequestInterface $request, string $secret): Webhook
+    final public static function constructFromRequest(RequestInterface $request, string $secret): DeliveryStatusWebhook|IncomingMessageWebhook
     {
 
         return self::constructFromJWT(
@@ -179,13 +152,9 @@ abstract class Webhook
      * Parses a webhook using a JWT directly. This is equivalent to using `constructFromRequest()` if you have
      * correctly extracted the JWT from the 'X-Gwapi-Signature' HTTP header of the request.
      *
-     * @param string $jwt
-     * @param string $secret
-     *
-     * @return DeliveryStatusWebhook|IncomingMessageWebhook
      * @throws WebhookException
      */
-    final public static function constructFromJWT(string $jwt, string $secret): Webhook
+    final public static function constructFromJWT(string $jwt, string $secret): DeliveryStatusWebhook|IncomingMessageWebhook
     {
 
         return self::constructWebhook(self::parseAndValidateJWT($jwt, $secret));
