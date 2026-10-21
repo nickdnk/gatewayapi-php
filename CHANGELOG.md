@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.0.1 - 2026-10-21
+
+* Webhook JWT signature validation now uses `hash_equals()` for a constant-time comparison instead of `===`.
+
 ## 5.0.0 - 2026-08-24
 
 * Require **at least PHP 8.2**. Stay on `4.x` if you need PHP 7.

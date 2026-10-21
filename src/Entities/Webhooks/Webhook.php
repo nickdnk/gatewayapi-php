@@ -89,14 +89,17 @@ readonly abstract class Webhook
                     };
 
                     if ($algo
-                        && rtrim(
-                               strtr(
-                                   base64_encode(hash_hmac($algo, $split[0] . '.' . $split[1], $secret, true)),
-                                   "+/",
-                                   "-_"
-                               ),
-                               "="
-                           ) === $split[2]) {
+                        && hash_equals(
+                            rtrim(
+                                strtr(
+                                    base64_encode(hash_hmac($algo, $split[0] . '.' . $split[1], $secret, true)),
+                                    "+/",
+                                    "-_"
+                                ),
+                                "="
+                            ),
+                            $split[2]
+                        )) {
 
                         return $payload;
 
